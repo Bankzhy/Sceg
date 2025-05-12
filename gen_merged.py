@@ -270,7 +270,6 @@ def find_vmu_opportunity(sr_class, program_name):
         # all_statement.extend(method.get_all_statement())
     return result_list
 
-
 def get_statement_MDU(statement_list):
     # TODO: Required Complete pattern
     pattern = r"^\w+\s\(+"
@@ -296,7 +295,39 @@ def check_lock_var(method1, method2, field_name_list):
     return False
 
 def gen_move_method():
-    pass
+    project_path = Path(r"/Users/zhang/Documents/Sceg/test")
+    save_path = Path(r"/Users/zhang/Documents/Sceg/output")
+    ast = KASTParse(project_path, "java")
+    ast.setup()
+    sr_project = ast.do_parse()
+    cls_list = []
+    cls_name_list = []
+    related_cls_name_list = []
+
+    for program in sr_project.program_list:
+        for sr_class in program.class_list:
+            cls_list.append(sr_class)
+            cls_name_list.append(sr_class.name)
+
+    for program in sr_project.program_list:
+        for sr_class in program.class_list:
+            field_name_list = []
+            for field in program.field_list:
+                if field.field_type in cls_name_list:
+                    field_name_list.append(field.field_name)
+
+            for method in sr_class.method_list:
+                for param in method.param_list:
+                    if param.type in cls_name_list:
+                        related_cls_name_list.append(param.type)
+
+                all_statement_list = method.get_all_statement()
+                for statement in all_statement_list:
+                    for word in statement.word_list:
+                        if word in field_name_list:
+                            pass
+                        elif word in cls_name_list:
+                            pass
 
 def gen_merge_method():
     project_path = Path(r"D:\research\code_corpus\jgrapht\jgrapht-core\src\main\java")
@@ -412,6 +443,7 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order):
         )
         finish_num += 1
         print("mdu {}/{} has been finished save".format(finish_num, total_num))
+
 def generate_amu(vmu_do_fix_object_list, writer, field_order):
     total_num = len(vmu_do_fix_object_list)
     finish_num = 0
@@ -485,4 +517,5 @@ def generate_amu(vmu_do_fix_object_list, writer, field_order):
 
 if __name__ == '__main__':
     # gen_merge_cls()
-    gen_merge_method()
+    # gen_merge_method()
+    gen_move_method()
