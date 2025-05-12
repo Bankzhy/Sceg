@@ -41,6 +41,12 @@ class SRMethod(SRCore):
 
     def to_string(self, space=1):
         result = ""
+
+        for i, modifier in enumerate(self.modifiers):
+            if modifier == "Override":
+                self.modifiers.insert(i+1, "\n   ")
+                break
+
         result += " ".join(self.modifiers)
         result += " "
         result += self.return_type
