@@ -1,5 +1,6 @@
 import copy
 import csv
+import os
 from pathlib import Path
 import re
 
@@ -301,8 +302,8 @@ def find_class_by_name(class_name, cls_list):
             return cls
 
 def gen_move_method():
-    project_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\test")
-    save_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\output")
+    project_path = Path(r"/Users/zhang/Documents/Sceg/test")
+    save_path = Path(r"/Users/zhang/Documents/Sceg/output")
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
@@ -347,9 +348,21 @@ def gen_move_method():
     for opp in opp_list:
         source_class = opp["source"]
         target_class = opp["target"]
+        target_method = None
 
         for method in opp["source"].method_list:
             if method.method_name == opp["method"]:
+                target_method = method
+
+        if target_method is not None:
+            target_class.method_list.append(target_method)
+            source_class.method_list.remove(target_method)
+
+            new_data_dir = save_path / (source_class.class_name+"-"+target_class.class_name+"-"+target_method.method_name)
+            os.mkdir(new_data_dir)
+            save_file(target_class.to_string(space=0), target_class.class_name, new_data_dir)
+            save_file(source_class.to_string(space=0), source_class.class_name, new_data_dir)
+
 
 
 def gen_merge_method():
