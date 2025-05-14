@@ -294,40 +294,63 @@ def check_lock_var(method1, method2, field_name_list):
             return True
     return False
 
+def find_class_by_name(class_name, cls_list):
+
+    for cls in cls_list:
+        if cls.class_name == class_name:
+            return cls
+
 def gen_move_method():
-    project_path = Path(r"/Users/zhang/Documents/Sceg/test")
-    save_path = Path(r"/Users/zhang/Documents/Sceg/output")
+    project_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\test")
+    save_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\output")
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
     cls_list = []
     cls_name_list = []
-    related_cls_name_list = []
+    opp_list = []
 
     for program in sr_project.program_list:
         for sr_class in program.class_list:
             cls_list.append(sr_class)
-            cls_name_list.append(sr_class.name)
+            cls_name_list.append(sr_class.class_name)
 
     for program in sr_project.program_list:
         for sr_class in program.class_list:
-            field_name_list = []
-            for field in program.field_list:
+            field_name_dict = {}
+            for field in sr_class.field_list:
                 if field.field_type in cls_name_list:
-                    field_name_list.append(field.field_name)
+                    field_name_dict[field.field_name] = field.field_type
 
             for method in sr_class.method_list:
                 for param in method.param_list:
                     if param.type in cls_name_list:
-                        related_cls_name_list.append(param.type)
+                        new_move_opp = {
+                            "target": find_class_by_name(param.type, cls_list),
+                            "source": sr_class,
+                            "method": method.method_name
+                        }
+                        opp_list.append(new_move_opp)
 
                 all_statement_list = method.get_all_statement()
                 for statement in all_statement_list:
                     for word in statement.word_list:
-                        if word in field_name_list:
-                            pass
-                        elif word in cls_name_list:
-                            pass
+                        if word in field_name_dict.keys():
+                            new_move_opp = {
+                                "target": find_class_by_name(field_name_dict[word], cls_list),
+                                "source": sr_class.class_name,
+                                "method": method.method_name,
+                            }
+                            opp_list.append(new_move_opp)
+    print("opp count:", len(opp_list))
+
+    for opp in opp_list:
+        source_class = opp["source"]
+        target_class = opp["target"]
+
+        for method in opp["source"].method_list:
+            if method.method_name == opp["method"]:
+
 
 def gen_merge_method():
     project_path = Path(r"D:\research\code_corpus\jgrapht\jgrapht-core\src\main\java")
