@@ -318,12 +318,21 @@ def gen_move_method():
 
     for program in sr_project.program_list:
         for sr_class in program.class_list:
+
+            extend_class = None
+            extend_class_field_name_list = []
+            if len(sr_class.extends) > 0:
+                if sr_class.extends[1] in cls_name_list:
+                    extend_class = find_class_by_name(sr_class.extends[1], cls_list)
+                    for field in extend_class.field_list:
+                        extend_class_field_name_list.append(field.field_name)
+
             field_name_dict = {}
             for field in sr_class.field_list:
                 if field.field_type in cls_name_list:
                     field_name_dict[field.field_name] = field.field_type
-
             for method in sr_class.method_list:
+                move_to_parent = True
                 for param in method.param_list:
                     if param.type in cls_name_list:
                         new_move_opp = {
@@ -343,6 +352,17 @@ def gen_move_method():
                                 "method": method.method_name,
                             }
                             opp_list.append(new_move_opp)
+
+                            if word not in extend_class_field_name_list:
+                                move_to_parent = False
+                if move_to_parent and extend_class is not None:
+                    new_move_opp = {
+                        "target": extend_class,
+                        "source": sr_class,
+                        "method": method.method_name,
+                    }
+                    opp_list.append(new_move_opp)
+
     print("opp count:", len(opp_list))
 
     for opp in opp_list:
