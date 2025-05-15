@@ -419,15 +419,15 @@ def gen_merge_method():
     print("Do fix generation...")
 
     field_order = ["file_name", 'class_name', 'lm_method_name', 'copy_source_method', 'label', 'program_name']
-    with open(save_path + "codenet01_index.csv", 'w', encoding="utf-8", newline='') as csvfile:
+    with open(save_path / "codenet01_index.csv", 'w', encoding="utf-8", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, field_order)
         writer.writeheader()
         # for index, fix_object in enumerate(do_fix_object_list):
         #     file_name = "codenet" + "01" + "-" + str(index) + ".java"
         #     writer.writerow(dict(zip(field_order, [file_name, fix_object.target_sr_class.class_name, fix_object.target_method.method_name, fix_object.copy_source_method.method_name, "1", fix_object.program_name])))
         print(f"Total Num:{len(mdu_do_fix_object_list)}")
-        # generate_mdu(mdu_do_fix_object_list=mdu_do_fix_object_list, writer=writer, field_order=field_order)
-        generate_amu(vmu_do_fix_object_list=vmu_do_fix_object_list, writer=writer, field_order=field_order)
+        generate_mdu(mdu_do_fix_object_list=mdu_do_fix_object_list, writer=writer, field_order=field_order, save_path=save_path)
+        generate_vmu(vmu_do_fix_object_list=vmu_do_fix_object_list, writer=writer, field_order=field_order, save_path=save_path)
 
 def gen_merge_cls():
     project_path = Path(r"D:\research\code_corpus\jgrapht\jgrapht-core\src\main\java")
@@ -459,7 +459,22 @@ def gen_merge_cls():
     for index, opp in enumerate(mopp_list):
         gen_lc_opp(opp, index, save_path)
 
-def generate_mdu(mdu_do_fix_object_list, writer, field_order):
+
+def fix_loc_var(fix_obj, idx):
+    field_name_list = list(map(lambda x: x.field_name, fix_obj.target_sr_class.field_list))
+    old_var_list = []
+    new_var_list = []
+    source_method_all_var = fix_obj.copy_source_method.get_all_local_var()
+    target_method_all_var = fix_obj.target_method.get_all_local_var()
+    for var in source_method_all_var:
+        if var in target_method_all_var and var not in field_name_list:
+            old_var_list.append(var)
+            new_var = var + str(idx)
+            new_var_list.append(new_var)
+
+    return old_var_list, new_var_list
+
+def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
     total_num = len(mdu_do_fix_object_list)
     finish_num = 0
     for index, fix_object in enumerate(mdu_do_fix_object_list):
@@ -467,22 +482,28 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order):
         new_param_list = get_statement_param(fix_object.statement)
         old_param_list = []
         for p in fix_object.copy_source_method.param_list:
-            old_param_list.append(p.name)
+            old_param_list.append(p)
+
+        old_var_list, new_var_list = fix_loc_var(fix_object, index)
+
+        for i in range(0, len(old_param_list)):
+            if old_param_list[i].name in old_var_list:
+                index = old_var_list.index(old_param_list[i].name)
+                old_param_list[i].name = new_var_list[index]
 
         sr_class = fix_object.target_sr_class
-        if sr_class.class_name == "Metaphone":
-            continue
         for method in sr_class.method_list:
             if method.id == fix_object.target_method.id:
+                nstm = fix_object.copy_source_method.replace_all_var(
+                    old_var_list=old_var_list,
+                    new_var_list=new_var_list,
+                    statement_list=[]
+                )
                 nstm = fix_object.copy_source_method.replace_all_param(
                     old_param_list=old_param_list,
-                    new_param_list=new_param_list
+                    new_param_list=new_param_list,
+                    statement_list=nstm
                 )
-
-                # print("============================")
-                # for sd in nstm:
-                #     print(sd.to_string())
-                # print("============================")
 
                 method.replace_statement(
                     statement_id=fix_object.statement.id,
@@ -496,16 +517,20 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order):
         writer.writerow(dict(zip(field_order, [file_name, sr_class_gen.class_name,
                                                fix_object.target_method.method_name,
                                                fix_object.copy_source_method.method_name, "1",
-                                               fix_object.program_name])))
+                                               fix_object.program_name,
+                                               len(fix_object.target_method.param_list)
+                                               ])))
 
         save_file(
             text=sr_class_gen.to_string(),
-            class_name=sr_class_gen.class_name
+            file_name=sr_class_gen.class_name,
+            path=save_path
         )
         finish_num += 1
         print("mdu {}/{} has been finished save".format(finish_num, total_num))
 
-def generate_amu(vmu_do_fix_object_list, writer, field_order):
+
+def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
     total_num = len(vmu_do_fix_object_list)
     finish_num = 0
     for index, fix_object in enumerate(vmu_do_fix_object_list):
@@ -514,16 +539,27 @@ def generate_amu(vmu_do_fix_object_list, writer, field_order):
         new_param_list = get_statement_param(fix_object.statement)
         old_param_list = []
         for p in fix_object.copy_source_method.param_list:
-            old_param_list.append(p.name)
+            old_param_list.append(p)
+        old_var_list, new_var_list = fix_loc_var(fix_object, index)
+
+        for i in range(0, len(old_param_list)):
+            if old_param_list[i].name in old_var_list:
+                index = old_var_list.index(old_param_list[i].name)
+                old_param_list[i].name = new_var_list[index]
 
         sr_class = fix_object.target_sr_class
         for method in sr_class.method_list:
             if method.id == fix_object.target_method.id:
+                nstm = fix_object.copy_source_method.replace_all_var(
+                    old_var_list=old_var_list,
+                    new_var_list=new_var_list,
+                    statement_list=[]
+                )
                 nstm = fix_object.copy_source_method.replace_all_param(
                     old_param_list=old_param_list,
-                    new_param_list=new_param_list
+                    new_param_list=new_param_list,
+                    statement_list=nstm
                 )
-
 
                 # add origin
                 sl = fix_object.statement.to_string().split(" = ")
@@ -532,14 +568,16 @@ def generate_amu(vmu_do_fix_object_list, writer, field_order):
                 if len(sl) == 2:
                     l_sl = sl[0].split(" ")
                     nstm = fix_object.copy_source_method.replace_return_statement(
-                        l_s=l_sl
+                        l_s=l_sl,
+                        statement_list=nstm
                     )
                     # print("l_sl")
                     # print(l_sl)
-                    if len(l_sl) == 2:
+                    # TODO:ints [ i ] [ j ];
+                    if len(l_sl) >= 2:
                         w_l = []
                         w_l.extend(l_sl)
-                        w_l.append("=")
+                        # w_l.append("=")
                         # w_l.append('null')
                         w_l.append(';')
                         st = SRStatement(
@@ -565,11 +603,14 @@ def generate_amu(vmu_do_fix_object_list, writer, field_order):
         writer.writerow(dict(zip(field_order, [file_name, sr_class_gen.class_name,
                                                fix_object.target_method.method_name,
                                                fix_object.copy_source_method.method_name, "1",
-                                               fix_object.program_name])))
+                                               fix_object.program_name,
+                                               len(fix_object.target_method.param_list)
+                                               ])))
 
         save_file(
             text=sr_class_gen.to_string(),
-            class_name=sr_class_gen.class_name
+            file_name=sr_class_gen.class_name,
+            path=save_path
         )
         finish_num += 1
         print("vmu {}/{} has been finished save".format(finish_num, total_num))
@@ -578,5 +619,5 @@ def generate_amu(vmu_do_fix_object_list, writer, field_order):
 
 if __name__ == '__main__':
     # gen_merge_cls()
-    # gen_merge_method()
-    gen_move_method()
+    gen_merge_method()
+    # gen_move_method()
