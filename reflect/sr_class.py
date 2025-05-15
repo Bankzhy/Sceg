@@ -30,7 +30,7 @@ class SRClass(SRCore):
 
         if self.modifiers != "":
             result += self.modifiers
-        result += " "
+            result += " "
 
         result += "class"
         result += " "
@@ -54,6 +54,7 @@ class SRClass(SRCore):
         for field in self.field_list:
             for x in range(0, space):
                 result += "    "
+            result += "    "
             result += field.to_string()
             result += "\n"
 
@@ -70,6 +71,8 @@ class SRClass(SRCore):
             result += "\n"
 
         for method in self.method_list:
+            if self.method_list.index(method) == 0:
+                result += "    "
             for x in range(0, space):
                 result += "    "
             space = 1

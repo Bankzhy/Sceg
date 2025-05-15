@@ -47,10 +47,12 @@ class SRMethod(SRCore):
                 self.modifiers.insert(i+1, "\n   ")
                 break
 
-        result += " ".join(self.modifiers)
-        result += " "
-        result += self.return_type
-        result += " "
+        if len(self.modifiers) > 0:
+            result += " ".join(self.modifiers)
+            result += " "
+        if result != "":
+            result += self.return_type
+            result += " "
         result += self.method_name
 
         result += "("

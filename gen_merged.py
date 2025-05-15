@@ -302,8 +302,8 @@ def find_class_by_name(class_name, cls_list):
             return cls
 
 def gen_move_method():
-    project_path = Path(r"/Users/zhang/Documents/Sceg/test")
-    save_path = Path(r"/Users/zhang/Documents/Sceg/output")
+    project_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\test")
+    save_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\output")
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
@@ -339,15 +339,15 @@ def gen_move_method():
                         if word in field_name_dict.keys():
                             new_move_opp = {
                                 "target": find_class_by_name(field_name_dict[word], cls_list),
-                                "source": sr_class.class_name,
+                                "source": sr_class,
                                 "method": method.method_name,
                             }
                             opp_list.append(new_move_opp)
     print("opp count:", len(opp_list))
 
     for opp in opp_list:
-        source_class = opp["source"]
-        target_class = opp["target"]
+        source_class = copy.deepcopy(opp["source"])
+        target_class = copy.deepcopy(opp["target"])
         target_method = None
 
         for method in opp["source"].method_list:
@@ -356,10 +356,15 @@ def gen_move_method():
 
         if target_method is not None:
             target_class.method_list.append(target_method)
-            source_class.method_list.remove(target_method)
+
+            for method in source_class.method_list:
+                if method.method_name == opp["method"]:
+                    source_class.method_list.remove(method)
+                    break
 
             new_data_dir = save_path / (source_class.class_name+"-"+target_class.class_name+"-"+target_method.method_name)
-            os.mkdir(new_data_dir)
+            if os.path.isdir(new_data_dir) is False:
+                os.mkdir(new_data_dir)
             save_file(target_class.to_string(space=0), target_class.class_name, new_data_dir)
             save_file(source_class.to_string(space=0), source_class.class_name, new_data_dir)
 
