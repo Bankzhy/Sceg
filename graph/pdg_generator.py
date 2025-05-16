@@ -466,12 +466,27 @@ class PDGGenerator:
     def to_json(self):
         info = {}
         info['nodes'] = []
-        info['flowEdges'] = []
-        info["DDEdges"] = []
-        info["CDEdges"] = []
+        info['flow_edges'] = []
+        info["dd_edges"] = []
+        info["cd_edges"] = []
+        info["include_edges"] = []
+
         metrics_calc = MetricsCalculator(
             sr_class=self.sr_class
         )
+
+        loc = metrics_calc.get_method_loc(self.sr_method)
+        cc = metrics_calc.get_method_cc(self.sr_method)
+
+        new_method_node = {
+            'id': self.__get_id(),
+            'type': "method",
+            "metrics": {
+
+            }
+        }
+
+
 
         for node in self.node_list:
             info['nodes'].append(node.to_dic())
