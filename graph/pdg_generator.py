@@ -475,21 +475,65 @@ class PDGGenerator:
             sr_class=self.sr_class
         )
 
+        doc_sim = DocSim()
+
         loc = metrics_calc.get_method_loc(self.sr_method)
         cc = metrics_calc.get_method_cc(self.sr_method)
+        pc = metrics_calc.get_method_pc(self.sr_method)
+        lcom1 = metrics_calc.get_method_LCOM1(self.sr_method)
+        lcom2 = metrics_calc.get_method_LCOM2(self.sr_method)
+        lcom3 = metrics_calc.get_method_LCOM3(self.sr_method)
+        lcom4 = metrics_calc.get_method_LCOM4(self.sr_method)
+        tsmc = metrics_calc.get_tsmc(self.sr_method, doc_sim)
 
         new_method_node = {
             'id': self.__get_id(),
             'type': "method",
             "metrics": {
-
+                "loc": loc,
+                "cc": cc,
+                "pc": pc,
+                "lcom1": lcom1,
+                "lcom2": lcom2,
+                "lcom3": lcom3,
+                "lcom4": lcom4,
+                "tsmc": tsmc
             }
         }
-
-
+        info['nodes'].append(new_method_node)
 
         for node in self.node_list:
-            info['nodes'].append(node.to_dic())
+            new_statement_node = node.to_dic()
+
+            abcl = metrics_calc.get_statement_abcl(node.sr_statement)
+            fuc = metrics_calc.get_statement_fuc(node.sr_statement)
+            lmuc = metrics_calc.get_statement_lmuc(node.sr_statement)
+            vuc = metrics_calc.get_statement_vuc(node.sr_statement)
+            puc = metrics_calc.get_statement_puc(node.sr_statement)
+            nbd = metrics_calc.get_statement_block_depth(node.sr_statement)
+            wc = metrics_calc.get_statement_wc(node.sr_statement)
+            tsmm = metrics_calc.get_tsmm(sr_method=self.sr_method, sr_statement=node.sr_statement, doc_sim=doc_sim)
+
+            new_statement_node["metrics"] = {
+                "abcl": abcl,
+                "fuc": fuc,
+                "lmuc":lmuc,
+                "vuc": vuc,
+                "puc": puc,
+                "nbd": nbd,
+                "wc": wc,
+                "tsmm": tsmm
+            }
+            info['nodes'].append(new_statement_node)
+
+            new_include_edge = {
+                "id": self.__get_id(),
+                "source":new_method_node["id"],
+                "target":new_statement_node["id"],
+                "type": "include"
+            }
+            info["include_edges"].append(new_include_edge)
+
         for edge in self.flow_edge_list:
             info['flowEdges'].append(edge.to_dic())
         for edge in self.dd_edge_list:

@@ -1,9 +1,10 @@
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 
 class DocSim:
-    def __init__(self, w2v_model, stopwords=None):
-        self.w2v_model = w2v_model
+    def __init__(self, stopwords=None):
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
         self.stopwords = stopwords if stopwords is not None else []
 
     def vectorize(self, doc: str) -> np.ndarray:
@@ -13,19 +14,20 @@ class DocSim:
         :return:
         """
         doc = doc.lower()
-        words = [w for w in doc.split(" ") if w not in self.stopwords]
-        word_vecs = []
-        for word in words:
-            try:
-                vec = self.w2v_model[word]
-                word_vecs.append(vec)
-            except KeyError:
-                # Ignore, if the word doesn't exist in the vocabulary
-                pass
-
-        # Assuming that document vector is the mean of all the word vectors
-        # PS: There are other & better ways to do it.
-        vector = np.mean(word_vecs, axis=0)
+        # words = [w for w in doc.split(" ") if w not in self.stopwords]
+        # word_vecs = []
+        # for word in words:
+        #     try:
+        #         vec = self.w2v_model[word]
+        #         word_vecs.append(vec)
+        #     except KeyError:
+        #         # Ignore, if the word doesn't exist in the vocabulary
+        #         pass
+        #
+        # # Assuming that document vector is the mean of all the word vectors
+        # # PS: There are other & better ways to do it.
+        # vector = np.mean(word_vecs, axis=0)
+        vector = self.model.encode(doc)
         return vector
 
     def _cosine_sim(self, vecA, vecB):

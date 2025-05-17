@@ -117,9 +117,24 @@ class StopWordRemover:
                               "you'll",
                               "you're", "you've", "your", "yours", "yourself", "yourselves", "z", "zero", "quot"]
 
+        self.JAVA_Identifier = ["boolean", "int", "long", "short", "byte", "float", "double", "char", "class", "interface",
+                         "if", "else", "do", "while", "for", "switch", "case", "default", "break", "continue", "return",
+                         "try", "catch", "finally", "public", "protected", "private", "final", "void", "static",
+                         "strict", "abstract", "transient", "synchronized", "volatile", "native", "package", "import",
+                         "throw", "throws", "extends", "implements", "this", "supper", "instanceof", "new", "true",
+                         "false", "null", "goto", "const"]
+        self.Special_Key = "[\n`~!@#$%^&*()+=\\-_|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。， 、？]"
+
     def remove_stop_word(self, word_list):
         result_list = []
         for word in word_list:
             if word not in self.JAVA_KEYWORDS_STOP_WORD_SET and word not in self.ENG_STOP_WORDS_SET:
                 result_list.append(word)
         return result_list
+
+    def filter_statement_text(self, sr_statement):
+        statement_text_lower = ""
+        for word in sr_statement.word_list:
+            if word not in self.JAVA_KEYWORDS_STOP_WORD_SET and word not in self.Special_Key and word not in self.JAVA_Identifier:
+                statement_text_lower += word.lower()
+        return statement_text_lower
