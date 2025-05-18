@@ -509,8 +509,12 @@ class PDGGenerator:
             fuc = metrics_calc.get_statement_fuc(node.sr_statement)
             lmuc = metrics_calc.get_statement_lmuc(node.sr_statement)
             vuc = metrics_calc.get_statement_vuc(node.sr_statement)
-            puc = metrics_calc.get_statement_puc(node.sr_statement)
-            nbd = metrics_calc.get_statement_block_depth(node.sr_statement)
+            param_name_list = []
+            if len(self.sr_method.param_list) > 0:
+                for p in self.sr_method.param_list:
+                    param_name_list.append(p.name)
+            puc = metrics_calc.get_statement_puc(node.sr_statement, param_name_list)
+            nbd = metrics_calc.get_statement_block_depth(self.sr_method, node.sr_statement)
             wc = metrics_calc.get_statement_wc(node.sr_statement)
             tsmm = metrics_calc.get_tsmm(sr_method=self.sr_method, sr_statement=node.sr_statement, doc_sim=doc_sim)
 
@@ -535,17 +539,21 @@ class PDGGenerator:
             info["include_edges"].append(new_include_edge)
 
         for edge in self.flow_edge_list:
-            info['flowEdges'].append(edge.to_dic())
+            info['flow_edges'].append(edge.to_dic())
         for edge in self.dd_edge_list:
-            info["DDEdges"].append(edge.to_dic())
+            info["dd_edges"].append(edge.to_dic())
 
         for edge in self.cd_edge_list:
-            info["CDEdges"].append(edge.to_dic())
+            info["cd_edges"].append(edge.to_dic())
         return json.dumps(info)
 
-    def to_database(self, cursor):
-
+    def to_database(self, db, project_name, group):
+        cursor = db.cursor()
         graph_json = self.to_json()
+        query = (r"replace into lm_master (project, content, class_name, method_name, param_count, extract_lines, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+        values = (project_name, self.sr_method.text, self.sr_class.class_name, self.sr_method.method_name, len(self.sr_method.param_list), "", group, "pool", graph_json, self.sr_class.package_name, 9, 0)
+        cursor.execute(query, values)
+        db.commit()
         # method level metrics
 
 

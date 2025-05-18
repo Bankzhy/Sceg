@@ -183,10 +183,7 @@ class MetricsCalculator:
 
         source_doc = method_name_txt
         target_docs = class_name_txt
-        sim_scores = doc_sim.calculate_similarity(source_doc, target_docs)
-        sim_score = 0
-        if len(sim_scores) > 0:
-            sim_score = sim_scores[0]["score"]
+        sim_score = doc_sim.calculate_similarity(source_doc, target_docs)
         sim_score = round(sim_score, 2)
         return sim_score
 
@@ -279,15 +276,13 @@ class MetricsCalculator:
     def get_tsmm(self, sr_method, sr_statement, doc_sim):
         method_name_txt = self.camel_case_split(sr_method.method_name)
         method_name_txt = " ".join(method_name_txt)
-
-        statement_txt = StopWordRemover.filter_statement_text(sr_statement)
+        stop_word_remover = StopWordRemover()
+        statement_txt = stop_word_remover.filter_statement_text(sr_statement)
         # statement_txt = " ".join(class_name_txt)
 
         source_doc = statement_txt
         target_docs = method_name_txt
-        sim_scores = doc_sim.calculate_similarity(source_doc, target_docs)
-        sim_score = 0
-        if len(sim_scores) > 0:
-            sim_score = sim_scores[0]["score"]
+
+        sim_score = doc_sim.calculate_similarity(source_doc, target_docs)
         sim_score = round(sim_score, 2)
         return sim_score

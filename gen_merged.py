@@ -3,7 +3,6 @@ import csv
 import os
 from pathlib import Path
 import re
-
 from reflect.sr_class import SRClass
 from reflect.sr_statement import SRStatement
 from sitter.ast2core import ASTParse
@@ -11,12 +10,21 @@ from sitter.kast2core import KASTParse
 
 class FixObject:
 
-    def __init__(self, target_sr_class, target_method, copy_source_method, program_name, statement):
+    def __init__(self, target_sr_class, target_method, target_method_param_num, copy_source_method, copy_source_method_param_num,program_name, statement):
         self.target_sr_class = target_sr_class
         self.target_method = target_method
+        self.target_method_param_num = target_method_param_num
         self.copy_source_method = copy_source_method
+        self.copy_source_method_param_num = copy_source_method_param_num
         self.program_name = program_name
         self.statement = statement
+
+project_path_dict = {
+    "jgrapht": Path(r"/Users/zhang/Documents/work/jgrapht/jgrapht-core")
+}
+save_path_dict = {
+    "jgrapht": Path(r"/Users/zhang/Documents/work/jgrapht_auto")
+}
 
 def save_file(text, file_name, path):
     file_name = path / (file_name+".java")
@@ -191,7 +199,9 @@ def find_mdu_opportunity(sr_class, program_name):
                         target_sr_class=sr_class,
                         program_name=program_name,
                         target_method=method,
+                        target_method_param_num=len(method.param_list),
                         copy_source_method=sr_class.method_list[index],
+                        copy_source_method_param_num=len(sr_class.method_list[index].param_list),
                         statement=statement
                     )
                     result_list.append(new_fix_object)
@@ -261,7 +271,9 @@ def find_vmu_opportunity(sr_class, program_name):
                         target_sr_class=sr_class,
                         program_name=program_name,
                         target_method=method,
+                        target_method_param_num=len(method.param_list),
                         copy_source_method=sr_class.method_list[index],
+                        copy_source_method_param_num=len(sr_class.method_list[index].param_list),
                         statement=statement
                     )
 
@@ -388,11 +400,9 @@ def gen_move_method():
             save_file(target_class.to_string(space=0), target_class.class_name, new_data_dir)
             save_file(source_class.to_string(space=0), source_class.class_name, new_data_dir)
 
-
-
-def gen_merge_method():
-    project_path = Path(r"D:\research\code_corpus\jgrapht\jgrapht-core\src\main\java")
-    save_path = Path(r"D:\research\code_corpus\jgrapht_auto")
+def gen_merge_method(project):
+    project_path = project_path_dict[project]
+    save_path = save_path_dict[project]
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
@@ -419,7 +429,7 @@ def gen_merge_method():
     print("Do fix generation...")
 
     field_order = ["file_name", 'class_name', 'lm_method_name', 'copy_source_method', 'label', 'program_name']
-    with open(save_path / "codenet01_index.csv", 'w', encoding="utf-8", newline='') as csvfile:
+    with open(save_path / "index.csv", 'w', encoding="utf-8", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, field_order)
         writer.writeheader()
         # for index, fix_object in enumerate(do_fix_object_list):
@@ -619,5 +629,5 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
 
 if __name__ == '__main__':
     # gen_merge_cls()
-    gen_merge_method()
+    gen_merge_method("jgrapht")
     # gen_move_method()
