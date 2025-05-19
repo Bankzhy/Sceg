@@ -20,10 +20,10 @@ class FixObject:
         self.statement = statement
 
 project_path_dict = {
-    "jgrapht": Path(r"/Users/zhang/Documents/work/jgrapht/jgrapht-core")
+    "jgrapht": Path(r"D:\research\code_corpus\jgrapht")
 }
 save_path_dict = {
-    "jgrapht": Path(r"/Users/zhang/Documents/work/jgrapht_auto")
+    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
 }
 
 def save_file(text, file_name, path):
@@ -439,9 +439,12 @@ def gen_merge_method(project):
         generate_mdu(mdu_do_fix_object_list=mdu_do_fix_object_list, writer=writer, field_order=field_order, save_path=save_path)
         generate_vmu(vmu_do_fix_object_list=vmu_do_fix_object_list, writer=writer, field_order=field_order, save_path=save_path)
 
-def gen_merge_cls():
-    project_path = Path(r"D:\research\code_corpus\jgrapht\jgrapht-core\src\main\java")
-    save_path = Path(r"D:\research\code_corpus\jgrapht_auto")
+def gen_merge_cls(project):
+    project_path = project_path_dict[project]
+    save_path = save_path_dict[project] / "lc"
+    if os.path.isdir(save_path) is False:
+        os.mkdir(save_path)
+
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
@@ -628,6 +631,6 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
 
 
 if __name__ == '__main__':
-    # gen_merge_cls()
-    gen_merge_method("jgrapht")
+    gen_merge_cls("jgrapht")
+    # gen_merge_method("jgrapht")
     # gen_move_method()

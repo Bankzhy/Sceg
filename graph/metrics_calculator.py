@@ -286,3 +286,256 @@ class MetricsCalculator:
         sim_score = doc_sim.calculate_similarity(source_doc, target_docs)
         sim_score = round(sim_score, 2)
         return sim_score
+
+    def get_nom(self):
+        method_count = 0
+        method_count += len(self.sr_class.method_list)
+        return method_count
+
+    def get_cis(self):
+        p_method_count = 0
+
+        for method in self.sr_class.method_list:
+            if len(method.modifiers) > 0:
+                if method.modifiers[0] == "public":
+                    p_method_count += 1
+        return p_method_count
+
+    def get_noa(self):
+        field_count = 0
+
+        field_count += len(self.sr_class.field_list)
+        return field_count
+
+    def get_nopa(self):
+        p_field_count = 0
+
+        for f in self.sr_class.field_list:
+            if len(f.modifiers) > 0:
+                if "public" in f.modifiers:
+                    p_field_count += 1
+        return p_field_count
+
+    def get_atfd(self, class_list):
+        atfd_count = 0
+        current_field_n_l = []
+        all_field_dic = {}
+        for cls in class_list:
+            all_field_n_l = []
+            for f in cls.field_list:
+                if "public" in f.modifiers and "static" in f. modifiers:
+                    all_field_n_l.append(f.field_name)
+            all_field_dic[cls.class_name] = all_field_n_l
+
+        print(atfd_count)
+        checked_list = []
+        for m in self.sr_class.method_list:
+            for st in m.statement_list:
+                for index, word in enumerate(st.word_list):
+                    if word in all_field_dic.keys():
+                        if (index + 2) < len(st.word_list):
+                            if st.word_list[index+2] in all_field_dic[word]:
+                                if word != self.sr_class.class_name:
+                                    ck = word + "." + st.word_list[index+2]
+                                    if ck in checked_list:
+                                        continue
+                                    else:
+                                        atfd_count += 1
+                                        checked_list.append(ck)
+        return atfd_count
+
+    def get_wmc(self):
+        wmc = 0
+
+        for method in self.sr_class.method_list:
+            cc = self.get_method_cc(method)
+            wmc += cc
+        return wmc
+
+    def get_intersection_il(self, method1, method2, i_l):
+        result = []
+        i_l_1 = []
+        i_l_2 = []
+
+        i_l_n = [o.field_name for o in i_l]
+        for statement in method1.get_all_statement(exclude_special=False):
+            for word in statement.word_list:
+                if word in i_l_n:
+                    i_l_1.append(word)
+
+        for statement in method2.get_all_statement(exclude_special=False):
+            for word in statement.word_list:
+                if word in i_l_n:
+                    i_l_2.append(word)
+
+        if len(i_l_1) > len(i_l_2):
+            for w in i_l_1:
+                if w in i_l_2:
+                    result.append(w)
+        else:
+            for w in i_l_2:
+                if w in i_l_1:
+                    result.append(w)
+
+        return result
+
+    def get_tcc(self):
+        common_method_pair_num = 0
+        total_method_pair_num = 0
+
+        num_methods = len(self.sr_class.method_list)
+        for i in range(0, num_methods):
+            for j in range(i, num_methods):
+                if i == j:
+                    continue
+                comman_attr = self.get_intersection_il(method1=self.sr_class.method_list[i], method2=self.sr_class.method_list[j], i_l=self.sr_class.field_list)
+                if len(comman_attr) > 0:
+                    common_method_pair_num += 1
+                total_method_pair_num += 1
+        if total_method_pair_num == 0:
+            return 0
+        return round(common_method_pair_num / total_method_pair_num, 2)
+
+    def get_lcom(self):
+        result = 0
+
+        i_l = []
+        P = 0
+        Q = 0
+        num_methods = len(self.sr_class.method_list)
+        field_list = self.sr_class.field_list
+        for f in field_list:
+            # if "static" not in f.modifiers:
+                i_l.append(f)
+
+        for i in range(0, num_methods):
+            for j in range(i, num_methods):
+                if i == j:
+                    continue
+                intersection_il = self.get_intersection_il(method1=self.sr_class.method_list[i], method2=self.sr_class.method_list[j], i_l=i_l)
+                if len(intersection_il) > 0:
+                    Q += 1
+                else:
+                    P += 1
+        if P > Q:
+            result = P - Q
+        else:
+            result = 0
+        return result
+
+    def get_dcc(self, class_list):
+        dcc_count = 0
+        class_name_list = [o.class_name for o in class_list]
+
+        for field in self.sr_class.field_list:
+            if field.field_type in class_name_list:
+                dcc_count += 1
+
+        for method in self.sr_class.method_list:
+            for param in method.param_list:
+                if param.type in class_name_list:
+                    dcc_count += 1
+        return dcc_count
+
+    def get_cam(self):
+        all_param_l = []
+        intersection_param = []
+
+        num_methods = len(self.sr_class.method_list)
+        for method in self.sr_class.method_list:
+            for param in method.param_list:
+                all_param_l.append(param.type)
+        for i in range(0, num_methods):
+            for j in range(i, num_methods):
+                if i == j:
+                    continue
+                p_l_i = [p.type for p in self.sr_class.method_list[i].param_list]
+                p_l_j = [p.type for p in self.sr_class.method_list[j].param_list]
+
+                i_l = []
+                for p in p_l_i:
+                    if p in p_l_j:
+                        i_l.append(p)
+                if len(i_l) > 0:
+                    intersection_param.extend(i_l)
+        if len(all_param_l) == 0:
+            return 0
+        return round(len(intersection_param) / len(all_param_l), 2)
+
+    def get_dit(self, class_list):
+        count = self.get_parent_count(self.sr_class, 0, class_list)
+        return count
+
+    def get_parent_count(self, sr_class, current_count, class_list):
+        count = current_count
+        if len(sr_class.extends) > 0:
+            parent_class_name = sr_class.extends[1]
+            parent_cls = None
+            count += 1
+            for cls in class_list:
+                if cls.class_name == parent_class_name:
+                    parent_cls = cls
+            if parent_cls is None:
+                return count
+            else:
+                return self.get_parent_count(parent_cls, count, class_list)
+        else:
+            return count
+
+    def get_noam(self):
+        noam = 0
+        f_n_l = [o.field_name.lower() for o in self.sr_class.field_list]
+
+
+        for m in self.sr_class.method_list:
+            if m.method_name.startswith("get") or m.method_name.startswith("set"):
+                m_l = m.method_name.split("get")
+                if len(m_l) > 1:
+                    if m_l[1].lower() in f_n_l:
+                        noam += 1
+                else:
+                    m_l = m.method_name.split("set")
+                    if m_l[1].lower() in f_n_l:
+                        noam += 1
+        return noam
+
+    def get_method_noav(self, sr_method):
+        fstl = []
+        total_var_l = []
+        all_statement = sr_method.get_all_statement(exclude_special=False)
+        for st in all_statement:
+            method_name_l, var_name_l = self.statement_special_key_filter(st.to_node_word_list())
+            object = {
+                "method_name_l": method_name_l,
+                "var_name_l": var_name_l
+            }
+            fstl.append(object)
+
+        for obj in fstl:
+            for var in obj["var_name_l"]:
+                if var not in total_var_l:
+                    total_var_l.append(var)
+        noav = len(total_var_l) + len(sr_method.param_list)
+        return noav
+
+    def get_method_block_depth(self, sr_method):
+        self.calculate_depth(sr_method=sr_method)
+        dp = 0
+        for st in sr_method.get_all_statement():
+            if st.block_depth > dp:
+                dp = st.block_depth
+        return dp
+
+    def get_method_fuc(self, sr_method):
+        result = 0
+        for statement in sr_method.statement_list:
+            s_re = self.get_statement_fuc(statement)
+            result += s_re
+        return result
+
+    def get_method_lmuc(self, sr_method):
+        result = 0
+        for statement in sr_method.statement_list:
+            s_re = self.get_statement_lmuc(statement)
+            result += s_re
+        return result
