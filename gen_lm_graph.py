@@ -36,7 +36,7 @@ def gen_original_graph(project_name):
                     sr_method=sr_method
                 )
                 pdg_generator.create_graph()
-                pdg_generator.to_database(db=db, project_name=project_name, group="origin")
+                pdg_generator.to_database(db=db, project_name=project_name, group="original")
 
 def gen_auto_graph(project_name):
     auto_index_path = project_auto_dict[project_name] / "index.csv"

@@ -6,6 +6,7 @@ from pathlib import Path
 import pymysql
 
 from gen_merged import project_path_dict
+from graph import doc_sim
 from graph.class_level_graph_generator import ClassLevelGraphGenerator
 from graph.doc_sim import DocSim
 from graph.matrix_construction import MatrixConstruction
@@ -37,7 +38,7 @@ def gen_original_graph(project_name):
         for sr_class in program.class_list:
             class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
             class_level_graph_generator.create_graph()
-            class_level_graph_generator.to_database(db=db, project_name=project_name, group="auto")
+            class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
 
 
 def find_class_graph_from_database(name, project):
@@ -70,6 +71,10 @@ def gen_auto_graph(project_name):
 
                 source_class_graph = find_class_graph_from_database(source_class_name, project_name)
                 target_class_graph = find_class_graph_from_database(target_class_name, project_name)
+
+                class_level_graph_generator = ClassLevelGraphGenerator(sr_class=sr_class)
+                class_level_graph_generator.create_merge_graph(source_class_graph=source_class_graph, target_class_graph=target_class_graph, doc_sim=doc_sim)
+                class_level_graph_generator.to_database(db=db, project_name=project_name, group="auto")
 
 
 

@@ -161,9 +161,146 @@ class ClassLevelGraphGenerator:
                     self.csm_edges.append(new_csm_edge)
 
 
-    def create_merge_graph(self, source_class_graph, target_class_graph):
+    def create_merge_graph(self, source_class_graph, target_class_graph, doc_sim):
+        source_class_node = None
+        target_class_node = None
+        merge_method_nodes = []
+        for node in source_class_graph["nodes"]:
+            if node["type"] == "class":
+                source_class_node = node
+            else:
+                merge_method_nodes.append(node)
+        for node in target_class_graph["nodes"]:
+            if node["type"] == "class":
+                target_class_node = node
+            else:
+                merge_method_nodes.append(node)
+        metrics_calc = MetricsCalculator(
+            sr_class=self.sr_class
+        )
+        merged_nom = source_class_node["metrics"]["nom"] + target_class_node["metrics"]["nom"]
+        merged_cis = source_class_node["metrics"]["cis"] + target_class_node["metrics"]["cis"]
+        merged_noa = source_class_node["metrics"]["noa"] + target_class_node["metrics"]["noa"]
+        merged_nopa = source_class_node["metrics"]["nopa"] + target_class_node["metrics"]["nopa"]
+        merged_atfd = source_class_node["metrics"]["atfd"] + target_class_node["metrics"]["atfd"]
+        merged_wmc = source_class_node["metrics"]["wmc"] + target_class_node["metrics"]["wmc"]
+        tcc = metrics_calc.get_tcc()
+        lcom = metrics_calc.get_lcom()
+        merged_dcc = source_class_node["metrics"]["dcc"] + target_class_node["metrics"]["dcc"]
+        cam = metrics_calc.get_cam()
+        merged_dit = max(source_class_node["metrics"]["dit"], target_class_node["metrics"]["dit"])
+        merged_noam = source_class_node["metrics"]["noam"] + target_class_node["metrics"]["noam"]
 
+        new_class_node = {
+            "id": self.__get_id(),
+            "type": "class",
+            "metrics": {
+                "nom": merged_nom,
+                "cis": merged_cis,
+                "noa": merged_noa,
+                "nopa": merged_nopa,
+                "atfd": merged_atfd,
+                "wmc": merged_wmc,
+                "tcc": tcc,
+                "lcom": lcom,
+                "dcc": merged_dcc,
+                "cam": cam,
+                "dit": merged_dit,
+                "noam": merged_noam
+            }
+        }
+        self.nodes.append(new_class_node)
+        method_nodes = []
+        for method in self.sr_class.method_list:
+            loc = metrics_calc.get_method_loc(method)
+            cc = metrics_calc.get_method_cc(method)
+            pc = metrics_calc.get_method_pc(method)
+            lcom1 = metrics_calc.get_method_LCOM1(method)
+            lcom2 = metrics_calc.get_method_LCOM2(method)
+            lcom3 = metrics_calc.get_method_LCOM3(method)
+            lcom4 = metrics_calc.get_method_LCOM4(method)
+            tsmc = metrics_calc.get_tsmc(method, doc_sim)
+            nbd = metrics_calc.get_method_block_depth(method)
+            fuc = metrics_calc.get_method_fuc(method)
+            lmuc = metrics_calc.get_method_lmuc(method)
+            noav = metrics_calc.get_method_noav(method)
 
+            new_method_node = {
+                'id': self.__get_id(),
+                'type': "method",
+                "metrics": {
+                    "loc": loc,
+                    "cc": cc,
+                    "pc": pc,
+                    "lcom1": lcom1,
+                    "lcom2": lcom2,
+                    "lcom3": lcom3,
+                    "lcom4": lcom4,
+                    "tsmc": tsmc,
+                    "nbd": nbd,
+                    "fuc": fuc,
+                    "lmuc": lmuc,
+                    "noav": noav
+                }
+            }
+            # self.nodes.append(new_method_node)
+            method_nodes.append(new_method_node)
+
+            new_include_edge = {
+                "source": new_class_node["id"],
+                "target": new_method_node["id"],
+                "type": "include"
+            }
+            self.include_edges.append(new_include_edge)
+
+        self.nodes.extend(method_nodes)
+
+        mc = MatrixConstruction(self.sr_class)
+        ssm, cdm, csm = mc.get_all_matrix()
+        doc_sim = DocSim()
+        csm = mc.calculate_CSM_doc_sim(doc_sim=doc_sim)
+
+        # ssm edges
+        length = np.size(ssm, 0)
+        for i in range(0, length):
+            for j in range(0, length):
+                if i == j:
+                    continue
+                if ssm[i][j] > 0:
+                    new_ssm_edge = {
+                        "source": method_nodes[i]["id"],
+                        "target": method_nodes[j]["id"],
+                        "type": "ssm"
+                    }
+                    self.ssm_edges.append(new_ssm_edge)
+
+        # cdm edges
+        length = np.size(cdm, 0)
+        for i in range(0, length):
+            for j in range(0, length):
+                if i == j:
+                    continue
+                if cdm[i][j] > 0:
+                    new_cdm_edge = {
+                        "source": method_nodes[i]["id"],
+                        "target": method_nodes[j]["id"],
+                        "type": "cdm"
+                    }
+                    self.cdm_edges.append(new_cdm_edge)
+
+        # csm edges
+        length = np.size(csm, 0)
+        for i in range(0, length):
+            for j in range(0, length):
+                if i == j:
+                    continue
+                if csm[i][j] > 0.5:
+                    new_csm_edge = {
+                        "source": method_nodes[i]["id"],
+                        "target": method_nodes[j]["id"],
+                        "type": "csm"
+                    }
+                    self.csm_edges.append(new_csm_edge)
 
     def to_json(self):
         info = {}
