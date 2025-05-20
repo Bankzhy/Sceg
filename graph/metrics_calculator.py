@@ -187,6 +187,53 @@ class MetricsCalculator:
         sim_score = round(sim_score, 2)
         return sim_score
 
+    def get_method_nfdi(self, sr_method, class_list):
+        result = 0
+        foreign_field_name_list = []
+        foreign_method_name_list = []
+
+        local_field_name_list = []
+        local_method_name_list = []
+
+        for cls in class_list:
+            if cls.class_name == self.sr_class.class_name:
+                continue
+
+            for field in cls.field_list:
+                foreign_field_name_list.append(field.field_name)
+            for method in cls.method_list:
+                foreign_method_name_list.append(method.method_name)
+
+        for field in self.sr_class.field_list:
+            local_field_name_list.append(field.field_name)
+
+        for method in self.sr_class.method_list:
+            local_method_name_list.append(method.method_name)
+
+        for statement in sr_method.statement_list:
+            for word in statement.to_node_word_list():
+                if word in foreign_method_name_list or word in foreign_field_name_list:
+                    if word not in local_method_name_list or word not in local_field_name_list:
+                        result +=1
+        return result
+
+    def get_method_nldi(self, sr_method):
+        result = 0
+        local_field_name_list = []
+        local_method_name_list = []
+
+        for field in self.sr_class.field_list:
+            local_field_name_list.append(field.field_name)
+
+        for method in self.sr_class.method_list:
+            local_method_name_list.append(method.method_name)
+
+        for statement in sr_method.statement_list:
+            for word in statement.to_node_word_list():
+                if word in local_method_name_list or word in local_field_name_list:
+                    result += 1
+        return result
+
     def get_statement_abcl(self, sr_statement):
         result = 0
         a_feat = ["=", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&=", "!=", "^=", ">>>=", "++", "--"]

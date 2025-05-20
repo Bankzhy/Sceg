@@ -69,6 +69,7 @@ class ClassLevelGraphGenerator:
         self.nodes.append(new_class_node)
         method_nodes = []
 
+
         for method in self.sr_class.method_list:
             loc = metrics_calc.get_method_loc(method)
             cc = metrics_calc.get_method_cc(method)
@@ -82,6 +83,8 @@ class ClassLevelGraphGenerator:
             fuc = metrics_calc.get_method_fuc(method)
             lmuc = metrics_calc.get_method_lmuc(method)
             noav = metrics_calc.get_method_noav(method)
+            nfdi = metrics_calc.get_method_nfdi(method, self.class_list)
+            nldi = metrics_calc.get_method_nldi(method)
 
             new_method_node = {
                 'id': self.__get_id(),
@@ -98,7 +101,9 @@ class ClassLevelGraphGenerator:
                     "nbd": nbd,
                     "fuc": fuc,
                     "lmuc": lmuc,
-                    "noav": noav
+                    "noav": noav,
+                    "nfdi": nfdi,
+                    "nldi": nldi
                 }
             }
             # self.nodes.append(new_method_node)
@@ -115,7 +120,6 @@ class ClassLevelGraphGenerator:
 
         mc = MatrixConstruction(self.sr_class)
         ssm, cdm, csm = mc.get_all_matrix()
-        doc_sim = DocSim()
         csm = mc.calculate_CSM_doc_sim(doc_sim=doc_sim)
 
         # ssm edges
