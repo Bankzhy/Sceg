@@ -328,7 +328,7 @@ class ClassLevelGraphGenerator:
         cursor.execute(query, values)
         db.commit()
 
-    def to_se_database(self, db, project_name, group, source_class_name, target_class_name, method_name):
+    def to_fe_database(self, db, project_name, group, source_class_name, target_class_name, method_name):
         cursor = db.cursor()
         graph_json = self.to_json()
         query = (

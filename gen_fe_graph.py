@@ -10,6 +10,7 @@ from graph.class_level_graph_generator import ClassLevelGraphGenerator
 from graph.doc_sim import DocSim
 from graph.matrix_construction import MatrixConstruction
 from graph.pdg_generator import PDGGenerator
+from reflect import sr_method
 from sitter.kast2core import KASTParse
 
 db = pymysql.connect(
@@ -69,6 +70,8 @@ def gen_original_graph(project_name):
                     for rcls in related_classes:
                         target_class = cls_list[cls_name_list.index(rcls)]
                         class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
+                        class_level_graph_generator.create_fe_graph(target_class=target_class)
+                        class_level_graph_generator.to_fe_database(db=db, project_name=sr_project.project_name, group="original", source_class_name=sr_class.class_name, target_class_name=target_class.class_name, method_name=method.method_name)
             # class_level_graph_generator.create_graph()
             # class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
 
