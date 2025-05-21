@@ -28,16 +28,49 @@ project_auto_dict = {
     "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
 }
 
+def find_related_class(sr_method, cls_name_list, field_name_dict):
+
+    related_classes = []
+    for param in sr_method.param_list:
+        if param.type in cls_name_list:
+            related_classes.append(param.type)
+
+    all_statement_list = sr_method.get_all_statement()
+    for statement in all_statement_list:
+        for word in statement.word_list:
+            if word in field_name_dict.keys():
+                related_classes.append(field_name_dict[word])
+
+    return related_classes
+
 def gen_original_graph(project_name):
     project_path = project_path_dict[project_name]
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
+    cls_list = []
+    cls_name_list = []
+
     for program in sr_project.program_list:
         for sr_class in program.class_list:
-            class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
-            class_level_graph_generator.create_graph()
-            class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
+            cls_list.append(sr_class)
+            cls_name_list.append(sr_class.class_name)
+
+    for program in sr_project.program_list:
+        for sr_class in program.class_list:
+            field_name_dict = {}
+            for field in sr_class.field_list:
+                if field.field_type in cls_name_list:
+                    field_name_dict[field.field_name] = field.field_type
+
+            for method in sr_class.method_list:
+                related_classes = find_related_class(sr_method=method, cls_name_list=cls_name_list, field_name_dict=field_name_dict)
+                if len(related_classes) > 0:
+                    for rcls in related_classes:
+                        target_class = cls_list[cls_name_list.index(rcls)]
+                        class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
+            # class_level_graph_generator.create_graph()
+            # class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
 
 
 def find_class_graph_from_database(name, project):

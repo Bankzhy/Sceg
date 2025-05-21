@@ -306,6 +306,11 @@ class ClassLevelGraphGenerator:
                     }
                     self.csm_edges.append(new_csm_edge)
 
+    def create_fe_graph(self, target_class):
+        self.create_graph()
+        self.sr_class = target_class
+        self.create_graph()
+
     def to_json(self):
         info = {}
         info["nodes"] = self.nodes
@@ -320,5 +325,14 @@ class ClassLevelGraphGenerator:
         graph_json = self.to_json()
         query = (r"replace into lc_master (project, class_name, content, extract_methods, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
         values = (project_name, self.sr_class.class_name, self.sr_class.class_name, "", group, "pool", graph_json, self.sr_class.package_name, 9, 0)
+        cursor.execute(query, values)
+        db.commit()
+
+    def to_se_database(self, db, project_name, group, source_class_name, target_class_name, method_name):
+        cursor = db.cursor()
+        graph_json = self.to_json()
+        query = (
+            r"replace into fe_master (project, class_name, method_name, target_class_name, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+        values = (project_name, source_class_name, method_name, target_class_name, group, "pool", graph_json, self.sr_class.package_name, 9, 0)
         cursor.execute(query, values)
         db.commit()
