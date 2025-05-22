@@ -1,16 +1,20 @@
 import copy
 import csv
 import os
+import uuid
 from pathlib import Path
 import re
 from reflect.sr_class import SRClass
+from reflect.sr_field import SRField
 from reflect.sr_statement import SRStatement
 from sitter.ast2core import ASTParse
 from sitter.kast2core import KASTParse
 
+
 class FixObject:
 
-    def __init__(self, target_sr_class, target_method, target_method_param_num, copy_source_method, copy_source_method_param_num,program_name, statement):
+    def __init__(self, target_sr_class, target_method, target_method_param_num, copy_source_method,
+                 copy_source_method_param_num, program_name, statement):
         self.target_sr_class = target_sr_class
         self.target_method = target_method
         self.target_method_param_num = target_method_param_num
@@ -19,25 +23,31 @@ class FixObject:
         self.program_name = program_name
         self.statement = statement
 
+
 project_path_dict = {
+    "test": Path(r"C:\Users\zhoun\PycharmProjects\Sceg\test"),
     "jgrapht": Path(r"D:\research\code_corpus\jgrapht")
 }
 save_path_dict = {
+    "test": Path(r"C:\Users\zhoun\PycharmProjects\Sceg\output"),
     "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
 }
 
+
 def save_file(text, file_name, path):
-    file_name = path / (file_name+".java")
+    file_name = path / (file_name + ".java")
     with open(file_name, 'w', encoding='utf-8') as f:
         f.write(text)
         f.close()
     print(file_name, " has been saved...")
+
 
 def find_sr_cls(sr_cls_n, sr_cls_l):
     for cls in sr_cls_l:
         if str(cls.class_name) == str(sr_cls_n):
             return cls
     return None
+
 
 def check_common_field(fl1, fl2):
     fl1_n = [o.field_name for o in fl1]
@@ -46,12 +56,14 @@ def check_common_field(fl1, fl2):
             return True
     return False
 
+
 def check_common_method(ml1, ml2):
     ml1_n = [o.method_name for o in ml1]
     for m in ml2:
         if m.method_name in ml1_n:
             return True
     return False
+
 
 def check_ilc_merge_oppturnity(sr_cls, sr_cls_l):
     result_list = []
@@ -87,6 +99,7 @@ def check_ilc_merge_oppturnity(sr_cls, sr_cls_l):
                 result_list.append(new_merge_opp)
     return result_list, failed
 
+
 def check_ihc_merge_oppturnity(sr_cls, sr_cls_l):
     result_list = []
     if len(sr_cls.extends) > 0:
@@ -113,6 +126,7 @@ def check_ihc_merge_oppturnity(sr_cls, sr_cls_l):
                 result_list.append(new_merge_opp)
 
     return result_list
+
 
 def gen_lc_opp(opp, index, save_path):
     # opp = obj["opp"]
@@ -170,13 +184,13 @@ def gen_lc_opp(opp, index, save_path):
 
     save_file(new_merged_class.to_string(space=0), new_class_name, save_path)
 
+
 def find_mdu_opportunity(sr_class, program_name):
     method_name_list = []
     field_name_list = []
     all_statement = []
     chance_statement_list = []
     result_list = []
-
 
     field_name_list = list(map(lambda x: x.field_name, sr_class.field_list))
     method_name_list = list(map(lambda x: x.method_name, sr_class.method_list))
@@ -206,19 +220,20 @@ def find_mdu_opportunity(sr_class, program_name):
                     )
                     result_list.append(new_fix_object)
 
-
         # all_statement.extend(method.get_all_statement())
     return result_list
+
 
 def get_statement_param(statement):
     result = []
     start_index = statement.word_list.index("(")
     end_index = statement.word_list.index(")")
 
-    for i in range(start_index+1, end_index):
+    for i in range(start_index + 1, end_index):
         if statement.word_list[i] != ",":
             result.append(statement.word_list[i])
     return result
+
 
 def get_statement_VMU(statement_list):
     # TODO: Required Complete pattern
@@ -237,13 +252,13 @@ def get_statement_VMU(statement_list):
 
     return result
 
+
 def find_vmu_opportunity(sr_class, program_name):
     method_name_list = []
     field_name_list = []
     all_statement = []
     chance_statement_list = []
     result_list = []
-
 
     field_name_list = list(map(lambda x: x.field_name, sr_class.field_list))
     method_name_list = list(map(lambda x: x.method_name, sr_class.method_list))
@@ -279,9 +294,9 @@ def find_vmu_opportunity(sr_class, program_name):
 
                     result_list.append(new_fix_object)
 
-
         # all_statement.extend(method.get_all_statement())
     return result_list
+
 
 def get_statement_MDU(statement_list):
     # TODO: Required Complete pattern
@@ -295,9 +310,11 @@ def get_statement_MDU(statement_list):
             result.append(statement)
     return result
 
+
 def extract_method_name_from_statement(statement):
     split_l = statement.to_string().split("(")
     return split_l[0].strip()
+
 
 def check_lock_var(method1, method2, field_name_list):
     method1_all_var = method1.get_all_local_var()
@@ -307,15 +324,21 @@ def check_lock_var(method1, method2, field_name_list):
             return True
     return False
 
-def find_class_by_name(class_name, cls_list):
 
+def find_class_by_name(class_name, cls_list):
     for cls in cls_list:
         if cls.class_name == class_name:
             return cls
 
-def gen_move_method():
-    project_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\test")
-    save_path = Path(r"C:\Users\zhoun\PycharmProjects\Sceg\output")
+
+def gen_move_method(project):
+    project_path = project_path_dict[project]
+    save_path = save_path_dict[project]
+    save_path = save_path / "fe"
+
+    if os.path.isdir(save_path) is False:
+        os.mkdir(save_path)
+
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
@@ -345,12 +368,19 @@ def gen_move_method():
                     field_name_dict[field.field_name] = field.field_type
             for method in sr_class.method_list:
                 move_to_parent = True
+
+                if method.method_name == sr_class.class_name:
+                    continue
+
                 for param in method.param_list:
                     if param.type in cls_name_list:
                         new_move_opp = {
                             "target": find_class_by_name(param.type, cls_list),
                             "source": sr_class,
-                            "method": method.method_name
+                            "method": method.method_name,
+                            "type": "param",
+                            "param_name": param.name,
+                            "param_type": param.type
                         }
                         opp_list.append(new_move_opp)
 
@@ -362,6 +392,9 @@ def gen_move_method():
                                 "target": find_class_by_name(field_name_dict[word], cls_list),
                                 "source": sr_class,
                                 "method": method.method_name,
+                                "type": "field",
+                                "field_name": word,
+                                "field_type": field_name_dict[word]
                             }
                             opp_list.append(new_move_opp)
 
@@ -372,6 +405,7 @@ def gen_move_method():
                         "target": extend_class,
                         "source": sr_class,
                         "method": method.method_name,
+                        "type": "extend"
                     }
                     opp_list.append(new_move_opp)
 
@@ -384,8 +418,8 @@ def gen_move_method():
 
         for method in opp["source"].method_list:
             if method.method_name == opp["method"]:
-                target_method = method
-
+                target_method = copy.deepcopy(method)
+        target_method, target_class = rebuild_move_method(target_method=target_method, target_class=target_class, opp=opp)
         if target_method is not None:
             target_class.method_list.append(target_method)
 
@@ -394,11 +428,52 @@ def gen_move_method():
                     source_class.method_list.remove(method)
                     break
 
-            new_data_dir = save_path / (source_class.class_name+"-"+target_class.class_name+"-"+target_method.method_name)
+            new_data_dir = save_path / (
+                        source_class.class_name + "-" + target_class.class_name + "-" + target_method.method_name)
             if os.path.isdir(new_data_dir) is False:
                 os.mkdir(new_data_dir)
             save_file(target_class.to_string(space=0), target_class.class_name, new_data_dir)
             save_file(source_class.to_string(space=0), source_class.class_name, new_data_dir)
+
+
+def rebuild_move_method(target_method, target_class, opp):
+    source_field_name_list = []
+    source_method_name_list = []
+
+    if opp["type"] == "param":
+        method_all_statement_list = target_method.get_all_statement()
+
+        for param in target_method.param_list:
+            if param.name == opp["param_name"]:
+                param.name = opp["source"].class_name.lower()
+                param.type = opp["source"].class_name
+
+        for statement in method_all_statement_list:
+            for index, word in enumerate(statement.word_list):
+                if word in source_field_name_list or word in source_method_name_list:
+                    statement.word_list = statement.word_list[:index] + [opp["source"].class_name.lower(),
+                                                                         "."] + statement.word_list[index:]
+    elif opp["type"] == "field":
+        target_class.field_list.append(
+            SRField(
+                id=uuid.uuid1().hex,
+                word_list=[opp["source"].class_name, opp["source"].class_name.lower(), "=", opp["source"].class_name, "(", ")", ";"],
+                field_name=opp["source"].class_name.lower(),
+                field_type=opp["source"].class_name
+            )
+        )
+
+        method_all_statement_list = target_method.get_all_statement()
+        for statement in method_all_statement_list:
+            for index, word in enumerate(statement.word_list):
+                if word in source_field_name_list or word in source_method_name_list:
+                    statement.word_list = statement.word_list[:index] + [opp["source"].class_name.lower(),
+                                                                         "."] + statement.word_list[index:]
+                if word == opp["field_name"]:
+                    statement.word_list = statement.word_list[:index] + statement.word_list[index+2:]
+
+    return target_method, target_class
+
 
 def gen_merge_method(project):
     project_path = project_path_dict[project]
@@ -436,8 +511,11 @@ def gen_merge_method(project):
         #     file_name = "codenet" + "01" + "-" + str(index) + ".java"
         #     writer.writerow(dict(zip(field_order, [file_name, fix_object.target_sr_class.class_name, fix_object.target_method.method_name, fix_object.copy_source_method.method_name, "1", fix_object.program_name])))
         print(f"Total Num:{len(mdu_do_fix_object_list)}")
-        generate_mdu(mdu_do_fix_object_list=mdu_do_fix_object_list, writer=writer, field_order=field_order, save_path=save_path)
-        generate_vmu(vmu_do_fix_object_list=vmu_do_fix_object_list, writer=writer, field_order=field_order, save_path=save_path)
+        generate_mdu(mdu_do_fix_object_list=mdu_do_fix_object_list, writer=writer, field_order=field_order,
+                     save_path=save_path)
+        generate_vmu(vmu_do_fix_object_list=vmu_do_fix_object_list, writer=writer, field_order=field_order,
+                     save_path=save_path)
+
 
 def gen_merge_cls(project):
     project_path = project_path_dict[project]
@@ -486,6 +564,7 @@ def fix_loc_var(fix_obj, idx):
             new_var_list.append(new_var)
 
     return old_var_list, new_var_list
+
 
 def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
     total_num = len(mdu_do_fix_object_list)
@@ -629,8 +708,7 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
         print("vmu {}/{} has been finished save".format(finish_num, total_num))
 
 
-
 if __name__ == '__main__':
-    gen_merge_cls("jgrapht")
+    # gen_merge_cls("jgrapht")
     # gen_merge_method("jgrapht")
-    # gen_move_method()
+    gen_move_method("test")
