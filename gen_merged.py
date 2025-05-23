@@ -478,6 +478,7 @@ def rebuild_move_method(target_method, target_class, opp):
 def gen_merge_method(project):
     project_path = project_path_dict[project]
     save_path = save_path_dict[project]
+    save_path = save_path / "lm"
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
@@ -710,5 +711,5 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
 
 if __name__ == '__main__':
     # gen_merge_cls("jgrapht")
-    # gen_merge_method("jgrapht")
-    gen_move_method("test")
+    gen_merge_method("jgrapht")
+    # gen_move_method("test")

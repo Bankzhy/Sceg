@@ -51,6 +51,7 @@ class ClassLevelGraphGenerator:
         new_class_node = {
             "id": self.__get_id(),
             "type": "class",
+            "name": self.sr_class.class_name,
             "metrics": {
                 "nom": nom,
                 "cis": cis,
@@ -89,6 +90,7 @@ class ClassLevelGraphGenerator:
             new_method_node = {
                 'id': self.__get_id(),
                 'type': "method",
+                'name': method.method_name,
                 "metrics": {
                     "loc": loc,
                     "cc": cc,

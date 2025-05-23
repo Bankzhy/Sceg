@@ -88,29 +88,50 @@ def find_class_graph_from_database(name, project):
     return graph
 
 def gen_auto_graph(project_name):
-    path = project_auto_dict[project_name] / "lc/"
+    path = project_auto_dict[project_name] / "fe/"
     doc_sim = DocSim()
 
-    for file in os.listdir(path):
-        file_path = path / file
-        ast = KASTParse(file_path, "java")
+    cls_list = []
+    cls_name_list = []
+
+    ast = KASTParse(project_path_dict[project_name], "java")
+    ast.setup()
+    original_project = ast.do_parse()
+    for program in original_project.program_list:
+        for sr_class in program.class_list:
+            cls_list.append(sr_class)
+            cls_name_list.append(sr_class.class_name)
+
+    for dir in os.listdir(path):
+        sample_path = path / dir
+        sample_path_l = dir.split("-")
+        source_class_name = sample_path_l[1]
+        target_class_name = sample_path_l[0]
+        target_method_name = sample_path_l[2]
+        source_class = None
+        target_class = None
+
+        ast = KASTParse(sample_path, "java")
         ast.setup()
-        file = open(file_path, encoding='utf-8')
-        file_content = file.read()
-        sr_project = ast.do_parse_content(file_content)
+        sr_project = ast.do_parse()
+
+
         for program in sr_project.program_list:
             for sr_class in program.class_list:
-                merged_class_name = sr_class.class_name
-                merged_class_name_l = merged_class_name.split("_")
-                target_class_name = merged_class_name_l[2]
-                source_class_name = merged_class_name_l[3]
+                if sr_class.class_name == source_class_name:
+                    source_class = sr_class
+                if sr_class.class_name == target_class_name:
+                    target_class = sr_class
 
-                source_class_graph = find_class_graph_from_database(source_class_name, project_name)
-                target_class_graph = find_class_graph_from_database(target_class_name, project_name)
+        if target_class is not  None and source_class is not  None:
+            class_level_graph_generator = ClassLevelGraphGenerator(sr_class=source_class, class_list=cls_list)
+            class_level_graph_generator.create_fe_graph(target_class=target_class)
+            class_level_graph_generator.to_fe_database(db=db, project_name=sr_project.project_name, group="auto",
+                                                       source_class_name=source_class.class_name,
+                                                       target_class_name=target_class.class_name,
+                                                       method_name=target_method_name)
 
-                class_level_graph_generator = ClassLevelGraphGenerator(sr_class=sr_class, class_list=[])
-                class_level_graph_generator.create_merge_graph(source_class_graph=source_class_graph, target_class_graph=target_class_graph, doc_sim=doc_sim)
-                class_level_graph_generator.to_database(db=db, project_name=project_name, group="auto")
+
 
 
 
@@ -119,4 +140,4 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    gen_original_graph("jgrapht")
+    gen_auto_graph("jgrapht")
