@@ -81,6 +81,25 @@ class SRMethod(SRCore):
         return result
         # return " ".join(self.word_list)
 
+    def get_method_identifier(self):
+        result = ""
+        if len(self.modifiers) > 0:
+            result += " ".join(self.modifiers)
+            result += " "
+        if result != "":
+            result += self.return_type
+            result += " "
+        result += self.method_name
+
+        result += "("
+        if len(self.param_list) > 0:
+            result += ",".join(
+                map(lambda p: p.to_string(), self.param_list)
+            )
+        result += ")"
+        return result
+
+
     def get_method_dic(self):
         method_info = {}
         method_info["methodName"] = self.method_name

@@ -39,6 +39,23 @@ def gen_original_graph(project_name):
                 pdg_generator.create_graph()
                 pdg_generator.to_database(db=db, project_name=project_name, group="original")
 
+
+def find_extract_lines(method_content, extract_content):
+    result = ""
+    extract_lines = extract_content.split("\n")
+    extract_start_line = extract_lines[0].replace(" ", "")
+    extract_second_line = extract_lines[1].replace(" ", "")
+
+    method_lines = method_content.split("\n")
+    for index, line in enumerate(method_lines):
+        if index < (len(method_lines)-1):
+            strip_line = line.replace(" ", "")
+            next_strip_line = method_lines[index+1].replace(" ", "")
+
+        if strip_line == extract_start_line and next_strip_line == extract_second_line:
+            result = str(index+1)+"-"+str(index+1+len(extract_lines))
+    return result
+
 def gen_auto_graph(project_name):
     auto_file_path = project_auto_dict[project_name] / "lm"
     if os.path.exists(auto_file_path) is False:
@@ -59,13 +76,17 @@ def gen_auto_graph(project_name):
                         for sr_method in sr_class.method_list:
                             if sr_method.method_name == row[2] and str(len(sr_method.param_list)) == row[4]:
                                 sr_method.method_name = row[4]+"And"+sr_method.method_name
+
+                                extract_lines = find_extract_lines(sr_method.to_string(), row[7])
+
                                 pdg_generator = PDGGenerator(
                                     sr_class=sr_class,
                                     sr_method=sr_method
                                 )
                                 pdg_generator.create_graph()
-                                pdg_generator.to_database(db=db, project_name=project_name, group="auto")
+                                pdg_generator.to_database(db=db, project_name=project_name, group="auto", extract_lines=extract_lines)
 
 
 if __name__ == '__main__':
     gen_auto_graph("jgrapht")
+    # gen_original_graph("jgrapht")

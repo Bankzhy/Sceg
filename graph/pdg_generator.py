@@ -547,11 +547,12 @@ class PDGGenerator:
             info["cd_edges"].append(edge.to_dic())
         return json.dumps(info)
 
-    def to_database(self, db, project_name, group):
+    def to_database(self, db, project_name, group, extract_lines=""):
         cursor = db.cursor()
         graph_json = self.to_json()
-        query = (r"replace into lm_master (project, content, class_name, method_name, param_count, extract_lines, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-        values = (project_name, self.sr_method.text, self.sr_class.class_name, self.sr_method.method_name, len(self.sr_method.param_list), "", group, "pool", graph_json, self.sr_class.package_name, 9, 0)
+        method_path = project_name+"_"+self.sr_class.class_name+"_"+self.sr_method.get_method_identifier()
+        query = (r"replace into lm_master (project, content, class_name, method_name, extract_lines, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+        values = (project_name, self.sr_method.text, self.sr_class.class_name, self.sr_method.method_name, extract_lines, group, "pool", graph_json, method_path, 9, 0)
         cursor.execute(query, values)
         db.commit()
         # method level metrics

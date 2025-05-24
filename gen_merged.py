@@ -504,7 +504,7 @@ def gen_merge_method(project):
     print("VMU %s can be fixed" % str(len(vmu_do_fix_object_list)))
     print("Do fix generation...")
 
-    field_order = ["file_name", 'class_name', 'lm_method_name', 'copy_source_method', 'label', 'program_name']
+    field_order = ["file_name", 'class_name', 'lm_method_name', 'copy_source_method', 'label', 'program_name', 'param_count', 'extract_lines']
     with open(save_path / "index.csv", 'w', encoding="utf-8", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, field_order)
         writer.writeheader()
@@ -603,6 +603,10 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
                     new_statement_list=nstm
                 )
 
+        extract_lines = ""
+        for st in nstm:
+            extract_lines += st.to_string()
+            extract_lines += "\n"
         sr_class_gen = copy.deepcopy(sr_class)
         sr_class_gen.class_name = sr_class.class_name + str(index)
 
@@ -611,7 +615,8 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
                                                fix_object.target_method.method_name,
                                                fix_object.copy_source_method.method_name, "1",
                                                fix_object.program_name,
-                                               len(fix_object.target_method.param_list)
+                                               len(fix_object.target_method.param_list),
+                                               extract_lines
                                                ])))
 
         save_file(
@@ -688,7 +693,10 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
                     statement_id=fix_object.statement.id,
                     new_statement_list=nstm
                 )
-
+        extract_lines = ""
+        for st in nstm:
+            extract_lines += st.to_string()
+            extract_lines += "\n"
         sr_class_gen = copy.deepcopy(sr_class)
         sr_class_gen.class_name = sr_class.class_name + str(index)
 
@@ -697,7 +705,8 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
                                                fix_object.target_method.method_name,
                                                fix_object.copy_source_method.method_name, "1",
                                                fix_object.program_name,
-                                               len(fix_object.target_method.param_list)
+                                               len(fix_object.target_method.param_list),
+                                               extract_lines
                                                ])))
 
         save_file(
