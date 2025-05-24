@@ -32,12 +32,16 @@ def gen_original_graph(project_name):
     for program in sr_project.program_list:
         for sr_class in program.class_list:
             for sr_method in sr_class.method_list:
-                pdg_generator = PDGGenerator(
-                    sr_class=sr_class,
-                    sr_method=sr_method
-                )
-                pdg_generator.create_graph()
-                pdg_generator.to_database(db=db, project_name=project_name, group="original")
+                try:
+                    pdg_generator = PDGGenerator(
+                        sr_class=sr_class,
+                        sr_method=sr_method
+                    )
+                    pdg_generator.create_graph()
+                    pdg_generator.to_database(db=db, project_name=project_name, group="original")
+                except Exception as e:
+                    print("Error:")
+                    print(e)
 
 
 def find_extract_lines(method_content, extract_content):
@@ -88,5 +92,5 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    gen_auto_graph("jgrapht")
-    # gen_original_graph("jgrapht")
+    # gen_auto_graph("jgrapht")
+    gen_original_graph("jgrapht")

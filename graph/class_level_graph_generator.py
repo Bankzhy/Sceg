@@ -322,19 +322,21 @@ class ClassLevelGraphGenerator:
         info["csm_edges"] = self.csm_edges
         return json.dumps(info)
 
-    def to_database(self, db, project_name, group):
+    def to_database(self, db, project_name, group, extract_methods=""):
         cursor = db.cursor()
         graph_json = self.to_json()
         query = (r"replace into lc_master (project, class_name, content, extract_methods, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-        values = (project_name, self.sr_class.class_name, self.sr_class.class_name, "", group, "pool", graph_json, self.sr_class.package_name, 9, 0)
+        values = (project_name, self.sr_class.class_name, self.sr_class.class_name, extract_methods, group, "pool", graph_json, self.sr_class.package_name, 9, 0)
         cursor.execute(query, values)
         db.commit()
 
-    def to_fe_database(self, db, project_name, group, source_class_name, target_class_name, method_name):
+    def to_fe_database(self, db, project_name, group, source_class_name, target_class_name, method_path):
         cursor = db.cursor()
         graph_json = self.to_json()
+        method_path_l = method_path.split("_")
+        method_name = method_path_l[len(method_path_l)-1]
         query = (
             r"replace into fe_master (project, class_name, method_name, target_class_name, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-        values = (project_name, source_class_name, method_name, target_class_name, group, "pool", graph_json, self.sr_class.package_name, 9, 0)
+        values = (project_name, source_class_name, method_name, target_class_name, group, "pool", graph_json, method_path, 9, 0)
         cursor.execute(query, values)
         db.commit()

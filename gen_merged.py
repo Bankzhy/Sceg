@@ -128,7 +128,7 @@ def check_ihc_merge_oppturnity(sr_cls, sr_cls_l):
     return result_list
 
 
-def gen_lc_opp(opp, index, save_path):
+def gen_lc_opp(opp, index, save_path, field_order, writer):
     # opp = obj["opp"]
     # index = obj["index"]
     new_class_name = opp["type"] + "_" + str(index) + "_" + opp["sc"].class_name + "_" + opp["tc"].class_name
@@ -137,6 +137,10 @@ def gen_lc_opp(opp, index, save_path):
         class_name=new_class_name,
         id=new_class_name
     )
+    extract_methods=[]
+    for m in opp['tc'].method_list:
+        extract_methods.append(m.method_name)
+    extract_methods = list(set(extract_methods))
 
     if opp['type'] == "ihc":
         new_merged_class.field_list = []
@@ -183,6 +187,7 @@ def gen_lc_opp(opp, index, save_path):
     new_merged_class.package_name = opp['sc'].package_name
 
     save_file(new_merged_class.to_string(space=0), new_class_name, save_path)
+    writer.writerow(dict(zip(field_order, [new_class_name + ".java", new_class_name, opp["sc"].class_name, opp["type"], ",".join(extract_methods)])))
 
 
 def find_mdu_opportunity(sr_class, program_name):
@@ -548,8 +553,12 @@ def gen_merge_cls(project):
                 mopp_list.extend(ihc)
     print("opp count:", len(mopp_list))
 
-    for index, opp in enumerate(mopp_list):
-        gen_lc_opp(opp, index, save_path)
+    field_order = ["file_name", 'class_name', 'copy_source_class', 'type', 'extract_methods']
+    with open(save_path / "index.csv", 'w', encoding="utf-8", newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, field_order)
+        writer.writeheader()
+        for index, opp in enumerate(mopp_list):
+            gen_lc_opp(opp, index, save_path, field_order, writer)
 
 
 def fix_loc_var(fix_obj, idx):
@@ -719,6 +728,6 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
 
 
 if __name__ == '__main__':
-    # gen_merge_cls("jgrapht")
-    gen_merge_method("jgrapht")
+    gen_merge_cls("jgrapht")
+    # gen_merge_method("jgrapht")
     # gen_move_method("test")
