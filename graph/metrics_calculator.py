@@ -696,3 +696,60 @@ class MetricsCalculator:
                         total_var_l.append(var)
         cd = len(total_var_l)
         return cd
+
+    def get_method_self_dist(self, sr_method):
+        self_class_field_names = []
+        self_class_method_names = []
+
+        for field in self.sr_class.field_list:
+            self_class_field_names.append(field.field_name)
+        for method in self.sr_class.method_list:
+            self_class_method_names.append(method.method_name)
+
+        method_entities = []
+        for index, word in enumrate(sr_method.word_list):
+            if word == "(":
+                method_entities.append(sr_method.word_list[index-1])
+
+            if word == ".":
+                method_entities.append(sr_method.word_list[index + 1])
+        method_entities = list(set(method_entities))
+        self_class_entities = self_class_field_names+self_class_method_names
+
+        # Convert lists to sets and get the intersection
+        common_elements = set(method_entities) & set(self_class_entities)
+
+        # Count the number of common elements
+        common_count = len(common_elements)
+
+        dist = common_count / (len(method_entities) + len(self_class_entities))
+        return dist
+
+    def get_method_target_dist(self, sr_method):
+        target_class_field_names = []
+        target_class_method_names = []
+
+        for field in self.sr_class.field_list:
+            target_class_field_names.append(field.field_name)
+        for method in self.sr_class.method_list:
+            target_class_method_names.append(method.method_name)
+
+        method_entities = []
+        for index, word in enumrate(sr_method.word_list):
+            if word == "(":
+                method_entities.append(sr_method.word_list[index - 1])
+
+            if word == ".":
+                method_entities.append(sr_method.word_list[index + 1])
+        method_entities = list(set(method_entities))
+        target_class_entities = target_class_field_names + target_class_method_names
+
+        # Convert lists to sets and get the intersection
+        common_elements = set(method_entities) & set(target_class_entities)
+
+        # Count the number of common elements
+        common_count = len(common_elements)
+
+        dist = common_count / (len(method_entities) + len(target_class_entities))
+        dist = 1-dist
+        return dist
