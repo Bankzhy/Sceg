@@ -18,10 +18,12 @@ db = pymysql.connect(
 )
 
 project_path_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht\jgrapht-core")
+    "jgrapht": Path(r"D:\research\code_corpus\jgrapht\jgrapht-core"),
+    "libgdx": Path(r"D:\research\code_corpus\libgdx\gdx")
 }
 project_auto_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
+    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto"),
+    "libgdx": Path(r"D:\research\code_corpus\libgdx_auto")
 }
 
 def gen_original_graph(project_name):
@@ -32,16 +34,17 @@ def gen_original_graph(project_name):
     for program in sr_project.program_list:
         for sr_class in program.class_list:
             for sr_method in sr_class.method_list:
-                try:
-                    pdg_generator = PDGGenerator(
-                        sr_class=sr_class,
-                        sr_method=sr_method
-                    )
-                    pdg_generator.create_graph()
-                    pdg_generator.to_database(db=db, project_name=project_name, group="original")
-                except Exception as e:
-                    print("Error:")
-                    print(e)
+                # try:
+                pdg_generator = PDGGenerator(
+                    sr_class=sr_class,
+                    sr_method=sr_method
+                )
+                pdg_generator.class_list = program.class_list
+                pdg_generator.create_graph()
+                pdg_generator.to_database(db=db, project_name=project_name, group="original")
+                # except Exception as e:
+                #     print("Error:")
+                #     print(e)
 
 
 def find_extract_lines(method_content, extract_content):

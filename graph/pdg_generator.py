@@ -32,6 +32,7 @@ class PDGGenerator:
         # self.w2v_model = KeyedVectors.load_word2vec_format(self.google_news_path, binary=True)
         # self.kes = KeyWordsExtracotr()
         # self.kes.init_code_corpus()
+        self.class_list = []
 
     def create_graph(self):
         cfg_gen = CFGGenerator(
@@ -485,6 +486,11 @@ class PDGGenerator:
         lcom3 = metrics_calc.get_method_LCOM3(self.sr_method)
         lcom4 = metrics_calc.get_method_LCOM4(self.sr_method)
         tsmc = metrics_calc.get_tsmc(self.sr_method, doc_sim)
+        coh = metrics_calc.get_method_COH(self.sr_method)
+        noav = metrics_calc.get_method_noav(self.sr_method)
+        class_name_list = [o.class_name for o in self.class_list]
+        cd = metrics_calc.get_method_CD(self.sr_method, class_name_list)
+        clc = metrics_calc.get_method_clc(self.sr_method)
 
         new_method_node = {
             'id': self.__get_id(),
@@ -497,7 +503,12 @@ class PDGGenerator:
                 "lcom2": lcom2,
                 "lcom3": lcom3,
                 "lcom4": lcom4,
-                "tsmc": tsmc
+                "tsmc": tsmc,
+                "coh": coh,
+                "cd": cd,
+                "noav": noav,
+                "clc": clc
+
             }
         }
         info['nodes'].append(new_method_node)
@@ -551,6 +562,10 @@ class PDGGenerator:
         cursor = db.cursor()
         graph_json = self.to_json()
         method_path = project_name+"_"+self.sr_class.class_name+"_"+self.sr_method.get_method_identifier()
+        if len(method_path) > 250:
+            method_path = method_path[0:250]
+
+
         query = (r"replace into lm_master (project, content, class_name, method_name, extract_lines, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
         values = (project_name, self.sr_method.text, self.sr_class.class_name, self.sr_method.method_name, extract_lines, group, "pool", graph_json, method_path, 9, 0)
         cursor.execute(query, values)

@@ -47,11 +47,14 @@ class ClassLevelGraphGenerator:
         dit = metrics_calc.get_dit(self.class_list)
         noam = metrics_calc.get_noam()
         doc_sim = DocSim()
+        field_name_list = [f.field_name for f in self.sr_class.field_list]
+        class_loc = metrics_calc.get_class_loc()
 
         new_class_node = {
             "id": self.__get_id(),
             "type": "class",
             "name": self.sr_class.class_name,
+            "fields": ",".join(field_name_list),
             "metrics": {
                 "nom": nom,
                 "cis": cis,
@@ -64,7 +67,8 @@ class ClassLevelGraphGenerator:
                 "dcc": dcc,
                 "cam": cam,
                 "dit": dit,
-                "noam": noam
+                "noam": noam,
+                "class_loc": class_loc
             }
         }
         self.nodes.append(new_class_node)

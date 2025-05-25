@@ -1,3 +1,5 @@
+import math
+
 from graph.stop_word_remover import StopWordRemover
 from reflect.sr_statement import SRIFStatement, SRTRYStatement, SRWhileStatement, SRFORStatement, SRSwitchStatement
 
@@ -6,6 +8,11 @@ class MetricsCalculator:
 
     def __init__(self, sr_class):
         self.sr_class = sr_class
+
+    def get_class_loc(self):
+        result = 0
+        result = self.sr_class.end_line - self.sr_class.start_line + 1
+        return result
 
     def get_method_loc(self, sr_method):
         result = 0
@@ -21,6 +28,61 @@ class MetricsCalculator:
                 condition_nodes.append(st)
         result = len(condition_nodes) + 1
         return result
+
+    def get_common_words(self, l1, l2):
+        lr = []
+        if len(l1) > len(l2):
+            for w in l1:
+                if w in l2:
+                    lr.append(w)
+        else:
+            for w in l2:
+                if w in l1:
+                    lr.append(w)
+
+        return lr
+
+    # class cohesion
+    def get_method_clc(self, sr_method):
+        fstl = []
+        IVt = 0
+        IVc = 0
+        all_statement = sr_method.get_all_statement(exclude_special=False)
+        for st in all_statement:
+            method_name_l, var_name_l = self.statement_special_key_filter(st.to_node_word_list())
+            object = {
+                "method_name_l": method_name_l,
+                "var_name_l": var_name_l
+            }
+            fstl.append(object)
+
+        for i in range(0, len(fstl)):
+            for j in range(i + 1, len(fstl)):
+                l1 = list(fstl[i]["var_name_l"])
+                l2 = list(fstl[j]["var_name_l"])
+                IVt += (len(l1) + len(l2))
+                IVc += (len(self.get_common_words(l1, l2)))
+        # print("IVt",IVt)
+        # print("IVc",IVc)
+
+        n = sr_method.get_method_LOC()
+        nt = n-2
+        if nt < 0:
+            nt = 0
+        l = 1*math.factorial(nt)/math.factorial(n)
+        r = 0
+        rl = math.factorial(n)/(2*math.factorial(nt))
+
+        for i in range(1, int(rl)+1):
+            if IVt == 0:
+                r += (IVc / 1) * i
+                continue
+            r += (IVc/IVt)*i
+        cc = l * r
+        # print("l", l)
+        # print("rl", rl)
+        # print("r",r)
+        return cc
 
     def get_method_pc(self, sr_method):
         result = 0
@@ -586,3 +648,51 @@ class MetricsCalculator:
             s_re = self.get_statement_lmuc(statement)
             result += s_re
         return result
+
+    def get_method_COH(self, sr_method):
+        fstl = []
+        var_used_count = []
+        var_total_number = []
+        all_statement = sr_method.get_all_statement(exclude_special=False)
+        for st in all_statement:
+            method_name_l, var_name_l = self.statement_special_key_filter(st.to_node_word_list())
+            object = {
+                "method_name_l": method_name_l,
+                "var_name_l": var_name_l
+            }
+            fstl.append(object)
+
+        for i in range(0, len(fstl)):
+            if len(fstl[i]["var_name_l"]) > 0:
+                for var in fstl[i]["var_name_l"]:
+                    var_used_count.append(var)
+                    if var not in var_total_number:
+                        var_total_number.append(var)
+        a = len(var_used_count)
+        l = len(var_total_number)
+        n = sr_method.get_method_LOC()
+        if (l - n * l) == 0:
+            return 0
+        lcom5 = (a - n * l) / (l - n * l)
+        coh = 1- (1 - 1/n)*lcom5
+        return coh
+
+    def get_method_CD(self, sr_method, class_name_list):
+        fstl = []
+        total_var_l = []
+        all_statement = sr_method.get_all_statement(exclude_special=False)
+        for st in all_statement:
+            method_name_l, var_name_l = self.statement_special_key_filter(st.to_node_word_list())
+            object = {
+                "method_name_l": method_name_l,
+                "var_name_l": var_name_l
+            }
+            fstl.append(object)
+
+        for obj in fstl:
+            for var in obj["var_name_l"]:
+                if var in class_name_list:
+                    if var not in total_var_l:
+                        total_var_l.append(var)
+        cd = len(total_var_l)
+        return cd
