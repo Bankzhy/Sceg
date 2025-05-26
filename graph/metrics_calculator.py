@@ -697,7 +697,7 @@ class MetricsCalculator:
         cd = len(total_var_l)
         return cd
 
-    def get_method_self_dist(self, sr_method):
+    def get_method_dist(self, sr_method):
         self_class_field_names = []
         self_class_method_names = []
 
@@ -707,7 +707,7 @@ class MetricsCalculator:
             self_class_method_names.append(method.method_name)
 
         method_entities = []
-        for index, word in enumrate(sr_method.word_list):
+        for index, word in enumerate(sr_method.word_list):
             if word == "(":
                 method_entities.append(sr_method.word_list[index-1])
 
@@ -723,19 +723,20 @@ class MetricsCalculator:
         common_count = len(common_elements)
 
         dist = common_count / (len(method_entities) + len(self_class_entities))
+        dist = 1 - dist
         return dist
 
-    def get_method_target_dist(self, sr_method):
+    def get_method_target_dist(self, sr_method, target_class):
         target_class_field_names = []
         target_class_method_names = []
 
-        for field in self.sr_class.field_list:
+        for field in target_class.field_list:
             target_class_field_names.append(field.field_name)
-        for method in self.sr_class.method_list:
+        for method in target_class.method_list:
             target_class_method_names.append(method.method_name)
 
         method_entities = []
-        for index, word in enumrate(sr_method.word_list):
+        for index, word in enumerate(sr_method.word_list):
             if word == "(":
                 method_entities.append(sr_method.word_list[index - 1])
 

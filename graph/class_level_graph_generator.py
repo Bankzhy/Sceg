@@ -29,7 +29,7 @@ class ClassLevelGraphGenerator:
             self.id_used.append(new_id)
             return new_id
 
-    def create_graph(self):
+    def create_graph(self, target_method=None):
         metrics_calc = MetricsCalculator(
             sr_class=self.sr_class
         )
@@ -49,6 +49,9 @@ class ClassLevelGraphGenerator:
         doc_sim = DocSim()
         field_name_list = [f.field_name for f in self.sr_class.field_list]
         class_loc = metrics_calc.get_class_loc()
+        dist = 0
+        if target_method is not None:
+            dist = metrics_calc.get_method_dist(target_method)
 
         new_class_node = {
             "id": self.__get_id(),
@@ -68,7 +71,8 @@ class ClassLevelGraphGenerator:
                 "cam": cam,
                 "dit": dit,
                 "noam": noam,
-                "class_loc": class_loc
+                "class_loc": class_loc,
+                "dist": dist
             }
         }
         self.nodes.append(new_class_node)
@@ -312,7 +316,7 @@ class ClassLevelGraphGenerator:
                     }
                     self.csm_edges.append(new_csm_edge)
 
-    def create_fe_graph(self, target_class):
+    def create_fe_graph(self, target_class, target_method):
         self.create_graph()
         self.sr_class = target_class
         self.create_graph()
@@ -334,11 +338,11 @@ class ClassLevelGraphGenerator:
         cursor.execute(query, values)
         db.commit()
 
-    def to_fe_database(self, db, project_name, group, source_class_name, target_class_name, method_path):
+    def to_fe_database(self, db, project_name, group, source_class_name, target_class_name, method_path, method_name):
         cursor = db.cursor()
         graph_json = self.to_json()
         method_path_l = method_path.split("_")
-        method_name = method_path_l[len(method_path_l)-1]
+        mn = method_path_l[len(method_path_l)-1]
         query = (
             r"replace into fe_master (project, class_name, method_name, target_class_name, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
         values = (project_name, source_class_name, method_name, target_class_name, group, "pool", graph_json, method_path, 9, 0)
