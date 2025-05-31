@@ -1,0 +1,2 @@
+Refactoring Type	Source Entity	Target Class	Source/Target accessed members	Rate it!
+Move Method	com.google.refine.commands.browsing.GetScatterplotCommand::draw(java.io.OutputStream, com.google.refine.model.Project, com.google.refine.browsing.Engine, com.google.refine.commands.browsing.GetScatterplotCommand.PlotterConfig):void	com.google.refine.commands.browsing.GetScatterplotCommand.PlotterConfig	0/11	
