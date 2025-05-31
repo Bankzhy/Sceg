@@ -399,7 +399,8 @@ class KASTParse:
         new_sr_switch_case = SRSwitchCase(
             id=self.get_uuid()
         )
-
+        new_sr_switch_case.start_line = (root_node.start_point[0] + 1)
+        new_sr_switch_case.end_line = (root_node.end_point[0] + 1)
         new_sr_switch_case.word_list
         for node in root_node.children:
             # print("======================")

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pymysql
 
-from gen_merged import project_path_dict
+from common import project_auto_dict, project_path_dict
 from graph.pdg_generator import PDGGenerator
 from sitter.kast2core import KASTParse
 
@@ -17,14 +17,37 @@ db = pymysql.connect(
     connect_timeout=50
 )
 
-project_path_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht\jgrapht-core"),
-    "libgdx": Path(r"D:\research\code_corpus\libgdx\gdx")
-}
-project_auto_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto"),
-    "libgdx": Path(r"D:\research\code_corpus\libgdx_auto")
-}
+# project_path_dict = {
+#     "jgrapht": Path(r"D:\research\code_corpus\jgrapht\jgrapht-core"),
+#     "libgdx": Path(r"D:\research\code_corpus\libgdx\gdx"),
+#     "freeplane": Path(r"D:\research\code_corpus\freeplane\freeplane\src\main"),
+#     "jsprit": Path(r"F:\research\dataset\op\jsprit\jsprit-core\src\main"),
+#     "oh": Path(r"F:\research\dataset\op\openhospital-core\src\main\java"),
+#     "openrefine": Path(r"D:\research\eval_projects\OpenRefine\main\src"),
+#
+#     "jedit": Path(r"D:\research\code_corpus\jEdit\org\jedit"),
+#     "rxJava": Path(r"D:\research\code_corpus\RxJava\src\main\java"),
+#     "junit4": Path(r"D:\research\code_corpus\junit4\src\main"),
+#     "mybatis3": Path(r"D:\research\code_corpus\mybatis-3\src\main"),
+#     "netty": Path(r"D:\research\code_corpus\netty\codec-base\src\main"),
+#     "gephi": Path(r"D:\research\code_corpus\gephi\modules"),
+#     "plantuml": Path(r"D:\research\code_corpus\plantuml\src\main"),
+#     "groot": Path(r"D:\research\code_corpus\groot\src\main"),
+#     "musicBot": Path(r"D:\research\code_corpus\MusicBot\src\main"),
+#     "traccar": Path(r"D:\research\code_corpus\traccar\src\main")
+# }
+# project_auto_dict = {
+#     "jedit": Path(r"D:\research\code_corpus\jEdit_auto"),
+#     "rxJava": Path(r"D:\research\code_corpus\RxJava_auto"),
+#     "junit4": Path(r"D:\research\code_corpus\junit4_auto"),
+#     "mybatis3": Path(r"D:\research\code_corpus\mybatis_auto"),
+#     "netty": Path(r"D:\research\code_corpus\netty_auto"),
+#     "gephi": Path(r"D:\research\code_corpus\gephi_auto"),
+#     "plantuml": Path(r"D:\research\code_corpus\plantuml_auto"),
+#     "groot": Path(r"D:\research\code_corpus\groot_auto"),
+#     "musicBot": Path(r"D:\research\code_corpus\MusicBot_auto"),
+#     "traccar": Path(r"D:\research\code_corpus\traccar_auto")
+# }
 
 def gen_original_graph(project_name):
     project_path = project_path_dict[project_name]
@@ -34,17 +57,17 @@ def gen_original_graph(project_name):
     for program in sr_project.program_list:
         for sr_class in program.class_list:
             for sr_method in sr_class.method_list:
-                # try:
-                pdg_generator = PDGGenerator(
-                    sr_class=sr_class,
-                    sr_method=sr_method
-                )
-                pdg_generator.class_list = program.class_list
-                pdg_generator.create_graph()
-                pdg_generator.to_database(db=db, project_name=project_name, group="original")
-                # except Exception as e:
-                #     print("Error:")
-                #     print(e)
+                try:
+                    pdg_generator = PDGGenerator(
+                        sr_class=sr_class,
+                        sr_method=sr_method
+                    )
+                    pdg_generator.class_list = program.class_list
+                    pdg_generator.create_graph()
+                    pdg_generator.to_database(db=db, project_name=project_name, group="original")
+                except Exception as e:
+                    print("Error:")
+                    print(e)
 
 
 def find_extract_lines(method_content, extract_content):
@@ -96,4 +119,4 @@ def gen_auto_graph(project_name):
 
 if __name__ == '__main__':
     # gen_auto_graph("jgrapht")
-    gen_original_graph("jgrapht")
+    gen_original_graph("rxJava")

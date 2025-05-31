@@ -4,6 +4,8 @@ import os
 import uuid
 from pathlib import Path
 import re
+
+from common import project_path_dict, project_auto_dict
 from reflect.sr_class import SRClass
 from reflect.sr_field import SRField
 from reflect.sr_statement import SRStatement
@@ -24,14 +26,14 @@ class FixObject:
         self.statement = statement
 
 
-project_path_dict = {
-    "test": Path(r"C:\Users\zhoun\PycharmProjects\Sceg\test"),
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht")
-}
-save_path_dict = {
-    "test": Path(r"C:\Users\zhoun\PycharmProjects\Sceg\output"),
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
-}
+# project_path_dict = {
+#     "test": Path(r"C:\Users\zhoun\PycharmProjects\Sceg\test"),
+#     "jgrapht": Path(r"D:\research\code_corpus\jgrapht")
+# }
+# project_auto_dict = {
+#     "test": Path(r"C:\Users\zhoun\PycharmProjects\Sceg\output"),
+#     "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
+# }
 
 
 def save_file(text, file_name, path):
@@ -338,7 +340,7 @@ def find_class_by_name(class_name, cls_list):
 
 def gen_move_method(project):
     project_path = project_path_dict[project]
-    save_path = save_path_dict[project]
+    save_path = project_auto_dict[project]
     save_path = save_path / "fe"
 
     if os.path.isdir(save_path) is False:
@@ -482,13 +484,18 @@ def rebuild_move_method(target_method, target_class, opp):
 
 def gen_merge_method(project):
     project_path = project_path_dict[project]
-    save_path = save_path_dict[project]
+    save_path = project_auto_dict[project]
+    if os.path.exists(save_path) is False:
+        os.mkdir(save_path)
     save_path = save_path / "lm"
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
     mdu_do_fix_object_list = []
     vmu_do_fix_object_list = []
+
+    if os.path.exists(save_path) is False:
+        os.mkdir(save_path)
 
     for program in sr_project.program_list:
         for sr_class in program.class_list:
@@ -525,7 +532,7 @@ def gen_merge_method(project):
 
 def gen_merge_cls(project):
     project_path = project_path_dict[project]
-    save_path = save_path_dict[project] / "lc"
+    save_path = project_auto_dict[project] / "lc"
     if os.path.isdir(save_path) is False:
         os.mkdir(save_path)
 
@@ -580,7 +587,8 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
     total_num = len(mdu_do_fix_object_list)
     finish_num = 0
     for index, fix_object in enumerate(mdu_do_fix_object_list):
-
+        if "(" not in fix_object.statement.word_list:
+            continue
         new_param_list = get_statement_param(fix_object.statement)
         old_param_list = []
         for p in fix_object.copy_source_method.param_list:
@@ -643,6 +651,8 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
     for index, fix_object in enumerate(vmu_do_fix_object_list):
         # print("fobs")
         # print(fix_object.statement.to_string())
+        if "(" not in fix_object.statement.word_list:
+            continue
         new_param_list = get_statement_param(fix_object.statement)
         old_param_list = []
         for p in fix_object.copy_source_method.param_list:
@@ -728,6 +738,6 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
 
 
 if __name__ == '__main__':
-    gen_merge_cls("jgrapht")
-    # gen_merge_method("jgrapht")
-    # gen_move_method("test")
+    # gen_merge_cls("traccar")
+    # gen_merge_method("traccar")
+    gen_move_method("traccar")

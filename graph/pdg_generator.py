@@ -529,6 +529,20 @@ class PDGGenerator:
             wc = metrics_calc.get_statement_wc(node.sr_statement)
             tsmm = metrics_calc.get_tsmm(sr_method=self.sr_method, sr_statement=node.sr_statement, doc_sim=doc_sim)
 
+            start_line = 0
+            end_line = 0
+
+            # if type(node.sr_statement) == SRStatement:
+            #     if node.sr_statement.type == "Fake":
+            #         start_line = 0
+            #         end_line = 0
+            #     else:
+            #         start_line = node.sr_statement.start_line
+            #         end_line = node.sr_statement.end_line
+            # else:
+            #     start_line = node.sr_statement.start_line
+            #     end_line = node.sr_statement.end_line
+
             new_statement_node["metrics"] = {
                 "abcl": abcl,
                 "fuc": fuc,
@@ -537,7 +551,9 @@ class PDGGenerator:
                 "puc": puc,
                 "nbd": nbd,
                 "wc": wc,
-                "tsmm": tsmm
+                "tsmm": tsmm,
+                "start_line": start_line,
+                "end_line": end_line,
             }
             info['nodes'].append(new_statement_node)
 
