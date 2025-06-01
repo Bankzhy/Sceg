@@ -119,4 +119,4 @@ def gen_auto_graph(project_name):
 
 if __name__ == '__main__':
     # gen_auto_graph("jgrapht")
-    gen_original_graph("rxJava")
+    gen_original_graph("jsprit")

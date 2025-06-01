@@ -1,0 +1,60 @@
+Refactoring Type	Source Entity	Target Class	Source/Target accessed members	Rate it!
+Move Method	org.isf.examination.service.ExaminationOperations::getFromLastPatientExamination(org.isf.examination.model.PatientExamination):org.isf.examination.model.PatientExamination	org.isf.examination.model.PatientExamination	0/15	
+Move Method	org.isf.lab.manager.LabManager::validateLaboratory(org.isf.lab.model.Laboratory):void	org.isf.lab.model.Laboratory	0/11	
+Move Method	org.isf.opd.manager.OpdBrowserManager::validateOpd(org.isf.opd.model.Opd, boolean):void	org.isf.opd.model.Opd	0/9	
+Move Method	org.isf.patvac.manager.PatVacManager::validatePatientVaccine(org.isf.patvac.model.PatientVaccine):void	org.isf.patvac.model.PatientVaccine	0/6	
+Move Method	org.isf.accounting.manager.BillBrowserManager::validateBill(org.isf.accounting.model.Bill, java.util.List<org.isf.accounting.model.BillItems>, java.util.List<org.isf.accounting.model.BillPayments>):void	org.isf.accounting.model.Bill	0/5	
+Move Method	org.isf.therapy.manager.TherapyManager::prepareSmsFromTherapy(org.isf.therapy.model.Therapy):java.lang.String	org.isf.therapy.model.Therapy	0/5	
+Move Method	org.isf.lab.manager.LabManager::setPatientConsistency(org.isf.lab.model.Laboratory):void	org.isf.lab.model.Laboratory	0/4	
+Move Method	org.isf.malnutrition.manager.MalnutritionManager::validateMalnutrition(org.isf.malnutrition.model.Malnutrition):void	org.isf.malnutrition.model.Malnutrition	0/4	
+Move Method	org.isf.priceslist.manager.PriceListManager::validatePriceList(org.isf.priceslist.model.PriceList):void	org.isf.priceslist.model.PriceList	0/4	
+Move Method	org.isf.medicals.manager.MedicalBrowsingManager::checkMedicalCommon(org.isf.medicals.model.Medical):java.util.List<org.isf.utils.exception.model.OHExceptionMessage>	org.isf.medicals.model.Medical	0/3	
+Move Method	org.isf.medicalstockward.manager.MovWardBrowserManager::validateMovementWard(org.isf.medicalstockward.model.MovementWard):void	org.isf.medicalstockward.model.MovementWard	0/3	
+Move Method	org.isf.opd.manager.OpdBrowserManager::setPatientConsistency(org.isf.opd.model.Opd):void	org.isf.opd.model.Opd	0/3	
+Move Method	org.isf.priceslist.manager.PriceListManager::convertPrice(org.isf.priceslist.model.PriceList, java.lang.Iterable<org.isf.priceslist.model.Price>):java.util.List<org.isf.serviceprinting.print.PriceForPrint>	org.isf.priceslist.model.PriceList	0/3	
+Move Method	org.isf.examination.manager.ExaminationBrowserManager::formatLastNote(org.isf.examination.model.PatientExamination):java.lang.String	org.isf.examination.model.PatientExamination	0/2	
+Move Method	org.isf.patient.manager.PatientBrowserManager::checkAge(org.isf.patient.model.Patient):boolean	org.isf.patient.model.Patient	0/2	
+Move Method	org.isf.pricesothers.manager.PricesOthersManager::validatePricesOthers(org.isf.pricesothers.model.PricesOthers):void	org.isf.pricesothers.model.PricesOthers	0/2	
+Move Method	org.isf.sms.providers.skebby.SkebbyGatewayConverter::toServiceDTO(org.isf.sms.model.Sms, java.awt.TrayIcon.MessageType, java.lang.String):org.isf.sms.providers.skebby.model.SckebbySmsRequest	org.isf.sms.model.Sms	0/2	
+Move Method	org.isf.sms.providers.textbelt.TextbeltGatewayConverter::toServiceDTO(java.lang.String, org.isf.sms.model.Sms):org.isf.sms.providers.textbelt.model.TextbeltSmsRequest	org.isf.sms.model.Sms	0/2	
+Move Method	org.isf.sms.service.SmsSenderOperations::preSMSSending(org.isf.sms.model.Sms):void	org.isf.sms.model.Sms	0/2	
+Move Method	org.isf.visits.manager.VisitManager::validateVisit(org.isf.visits.model.Visit):void	org.isf.visits.model.Visit	0/2	
+Move Method	org.isf.visits.manager.VisitManager::prepareSmsFromVisit(org.isf.visits.model.Visit):java.lang.String	org.isf.visits.model.Visit	0/2	
+Move Method	org.isf.disctype.manager.DischargeTypeBrowserManager::validateDeleteDischargeType(org.isf.disctype.model.DischargeType):void	org.isf.disctype.model.DischargeType	0/1	
+Move Method	org.isf.exa.manager.ExamRowBrowsingManager::validateExamRow(org.isf.exa.model.ExamRow):void	org.isf.exa.model.ExamRow	0/1	
+Move Method	org.isf.examination.manager.ExaminationBrowserManager::getFromLastPatientExamination(org.isf.examination.model.PatientExamination):org.isf.examination.model.PatientExamination	org.isf.examination.model.PatientExamination	1/14	
+Move Method	org.isf.ward.manager.WardBrowserManager::validateWard(org.isf.ward.model.Ward, boolean):void	org.isf.ward.model.Ward	1/6	
+Move Method	org.isf.medicalstockward.service.MedicalStockWardIoOperations::updateStockWardQuantity(org.isf.medicalstockward.model.MovementWard):boolean	org.isf.medicalstockward.model.MovementWard	1/5	
+Move Method	org.isf.dicom.service.DicomIoOperations::exist(org.isf.dicom.model.FileDicom):boolean	org.isf.dicom.model.FileDicom	1/3	
+Move Method	org.isf.disease.manager.DiseaseBrowserManager::validateDisease(org.isf.disease.model.Disease, boolean):void	org.isf.disease.service.DiseaseIoOperations	1/3	
+Move Method	org.isf.disease.service.DiseaseIoOperations::deleteDisease(org.isf.disease.model.Disease):boolean	org.isf.disease.model.Disease	1/3	
+Move Method	org.isf.medstockmovtype.manager.MedicaldsrstockmovTypeBrowserManager::validateMovementType(org.isf.medstockmovtype.model.MovementType, boolean):void	org.isf.medstockmovtype.model.MovementType	1/3	
+Move Method	org.isf.patient.manager.PatientBrowserManager::validatePatient(org.isf.patient.model.Patient):void	org.isf.patient.model.Patient	1/3	
+Move Method	org.isf.admtype.manager.AdmissionTypeBrowserManager::validateAdmissionType(org.isf.admtype.model.AdmissionType, boolean):void	org.isf.admtype.model.AdmissionType	1/2	
+Move Method	org.isf.dicomtype.manager.DicomTypeBrowserManager::validateDicomType(org.isf.dicomtype.model.DicomType, boolean):void	org.isf.dicomtype.model.DicomType	1/2	
+Move Method	org.isf.disctype.manager.DischargeTypeBrowserManager::validateDischargeType(org.isf.disctype.model.DischargeType, boolean):void	org.isf.disctype.model.DischargeType	1/2	
+Move Method	org.isf.distype.manager.DiseaseTypeBrowserManager::validateDiseaseType(org.isf.distype.model.DiseaseType, boolean):void	org.isf.distype.model.DiseaseType	1/2	
+Move Method	org.isf.dlvrrestype.manager.DeliveryResultTypeBrowserManager::validateDeliveryResultType(org.isf.dlvrrestype.model.DeliveryResultType, boolean):void	org.isf.dlvrrestype.model.DeliveryResultType	1/2	
+Move Method	org.isf.dlvrtype.manager.DeliveryTypeBrowserManager::validateDeliveryType(org.isf.dlvrtype.model.DeliveryType, boolean):void	org.isf.dlvrtype.model.DeliveryType	1/2	
+Move Method	org.isf.exa.manager.ExamBrowsingManager::validateExam(org.isf.exa.model.Exam, boolean):void	org.isf.exa.model.Exam	1/2	
+Move Method	org.isf.exatype.manager.ExamTypeBrowserManager::validateExamType(org.isf.exatype.model.ExamType, boolean):void	org.isf.exatype.model.ExamType	1/2	
+Move Method	org.isf.medicals.service.MedicalsIoOperations::medicalCheck(org.isf.medicals.model.Medical, boolean):java.util.List<org.isf.medicals.model.Medical>	org.isf.medicals.model.Medical	1/2	
+Move Method	org.isf.medicalstock.service.MedicalStockIoOperations::storeLot(java.lang.String, org.isf.medicalstock.model.Lot, org.isf.medicals.model.Medical):boolean	org.isf.medicalstock.model.Lot	1/2	
+Move Method	org.isf.medtype.manager.MedicalTypeBrowserManager::validateMedicalType(org.isf.medtype.model.MedicalType, boolean):void	org.isf.medtype.model.MedicalType	1/2	
+Move Method	org.isf.menu.service.MenuIoOperations::updateUser(org.isf.menu.model.User):boolean	org.isf.menu.model.User	1/2	
+Move Method	org.isf.menu.service.MenuIoOperations::updatePassword(org.isf.menu.model.User):boolean	org.isf.menu.model.User	1/2	
+Move Method	org.isf.menu.service.MenuIoOperations::insertGroupMenu(org.isf.menu.model.UserGroup, org.isf.menu.model.UserMenuItem, boolean):boolean	org.isf.menu.model.UserMenuItem	1/2	
+Move Method	org.isf.menu.service.MenuIoOperations::updateUserGroup(org.isf.menu.model.UserGroup):boolean	org.isf.menu.model.UserGroup	1/2	
+Move Method	org.isf.opetype.manager.OperationTypeBrowserManager::validateOperationType(org.isf.opetype.model.OperationType, boolean):void	org.isf.opetype.model.OperationType	1/2	
+Move Method	org.isf.pregtreattype.manager.PregnantTreatmentTypeBrowserManager::validatePregnantTreatmentType(org.isf.pregtreattype.model.PregnantTreatmentType, boolean):void	org.isf.pregtreattype.model.PregnantTreatmentType	1/2	
+Move Method	org.isf.sms.manager.SmsManager::validateSms(org.isf.sms.model.Sms):void	org.isf.sms.model.Sms	1/2	
+Move Method	org.isf.supplier.manager.SupplierBrowserManager::getHashMap(boolean):java.util.Map<java.lang.Integer,java.lang.String>	org.isf.supplier.service.SupplierOperations	1/2	
+Move Method	org.isf.vaccine.manager.VaccineBrowserManager::validateVaccine(org.isf.vaccine.model.Vaccine, boolean):void	org.isf.vaccine.model.Vaccine	1/2	
+Move Method	org.isf.vactype.manager.VaccineTypeBrowserManager::validateVaccineType(org.isf.vactype.model.VaccineType, boolean):void	org.isf.vactype.model.VaccineType	1/2	
+Move Method	org.isf.xmpp.manager.Interaction::sendMessage(org.jivesoftware.smack.MessageListener, java.lang.String, java.lang.String, boolean):void	org.isf.xmpp.service.Server	1/2	
+Move Method	org.isf.patient.manager.PatientBrowserManager::mergePatient(org.isf.patient.model.Patient, org.isf.patient.model.Patient):boolean	org.isf.patient.model.Patient	2/30	
+Move Method	org.isf.dicom.manager.FileSystemDicomManager::parseDicomProperties(long, org.isf.dicom.model.FileDicom, java.io.File):void	org.isf.dicom.model.FileDicom	2/22	
+Move Method	org.isf.accounting.manager.BillBrowserManager::newBill(org.isf.accounting.model.Bill, java.util.List<org.isf.accounting.model.BillItems>, java.util.List<org.isf.accounting.model.BillPayments>):boolean	org.isf.accounting.service.AccountingIoOperations	2/4	
+Move Method	org.isf.accounting.manager.BillBrowserManager::updateBill(org.isf.accounting.model.Bill, java.util.List<org.isf.accounting.model.BillItems>, java.util.List<org.isf.accounting.model.BillPayments>):boolean	org.isf.accounting.service.AccountingIoOperations	2/4	
+Move Method	org.isf.medicals.manager.MedicalBrowsingManager::checkMedical(org.isf.medicals.model.Medical, boolean, boolean):void	org.isf.medicals.service.MedicalsIoOperations	2/3	
+Move Method	org.isf.visits.manager.VisitManager::deleteVisit(org.isf.visits.model.Visit):void	org.isf.visits.model.Visit	2/3	
