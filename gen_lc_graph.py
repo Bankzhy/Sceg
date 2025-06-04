@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pymysql
 
+from common import project_auto_dict
 from gen_merged import project_path_dict
 from graph.class_level_graph_generator import ClassLevelGraphGenerator
 from graph.doc_sim import DocSim
@@ -20,13 +21,6 @@ db = pymysql.connect(
     charset="utf8mb4",  # Use utf8mb4 for full Unicode support
     connect_timeout=50
 )
-
-project_path_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht")
-}
-project_auto_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
-}
 
 def gen_original_graph(project_name):
     project_path = project_path_dict[project_name]
@@ -86,4 +80,8 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    gen_auto_graph("jgrapht")
+    for key in project_path_dict.keys():
+        print("=================================")
+        print(key)
+        print("=================================")
+        gen_original_graph(key)

@@ -91,7 +91,7 @@ def gen_auto_graph(project_name):
     if os.path.exists(auto_file_path) is False:
         os.mkdir(auto_file_path)
     auto_index_path = auto_file_path / "index.csv"
-    with open(auto_index_path, mode='r') as file:
+    with open(auto_index_path, mode='r', encoding="utf-8") as file:
         reader = csv.reader(file)
         for index, row in enumerate(reader):
             if index > 0:
@@ -114,9 +114,11 @@ def gen_auto_graph(project_name):
                                     sr_method=sr_method
                                 )
                                 pdg_generator.create_graph()
-                                pdg_generator.to_database(db=db, project_name=project_name, group="auto", extract_lines=extract_lines)
+                                pdg_generator.to_database(db=db, project_name=project_name+"_auto", group="auto", extract_lines=extract_lines)
 
 
 if __name__ == '__main__':
-    # gen_auto_graph("jgrapht")
-    gen_original_graph("jsprit")
+    for key in project_auto_dict.keys():
+        print(key)
+        gen_auto_graph(key)
+    # gen_original_graph("jgrapht")

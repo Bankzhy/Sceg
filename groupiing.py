@@ -26,10 +26,11 @@ def grouping_lm_original():
     group_m_ids = []
 
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM lm_master where `group`='original'")
+    cursor.execute("SELECT * FROM lm_master where `group`='original' and split='train'")
     for row in cursor.fetchall():
         lm_id = row[0]
-        lm_graph = row[7]
+        lm_graph = row[8]
+        print(lm_id)
         lm_graph = json.loads(lm_graph)
 
         loc = None
@@ -69,10 +70,10 @@ def grouping_lm_auto():
     group_m_ids = []
 
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM lm_master where `group`='auto'")
+    cursor.execute("SELECT * FROM lm_master where `group`='auto' and split='train'")
     for row in cursor.fetchall():
         lm_id = row[0]
-        lm_graph = row[7]
+        lm_graph = row[8]
         lm_graph = json.loads(lm_graph)
         loc = None
         nodes = lm_graph["nodes"]

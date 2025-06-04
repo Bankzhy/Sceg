@@ -3,7 +3,7 @@ import os
 
 def generate_csv():
     file_order = ["project", "target_class", "extract_methods", "extract_fields"]
-    with open("index.csv", "w") as csvfile:
+    with open("index.csv", "w", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, file_order)
         writer.writeheader()
         for f in os.listdir("."):
@@ -26,22 +26,20 @@ def generate_csv():
                             element_l = element_l.split(", com.")
                         for e in element_l:
                             entity = e.split("::")[-1]
-                            if "(" in entity and ")" in entity:
+                            if "(" in entity:
                                 method_name = entity.split("(")[0]
                                 if target_class_name in cls_method_dict.keys():
                                     cls_method_dict[target_class_name].append(method_name)
                                 else:
                                     cls_method_dict[target_class_name] = [method_name]
-                            else:
+                            elif " " in entity:
                                 field_name = entity.split(" ")[-1]
                                 if target_class_name in cls_field_dict.keys():
                                     cls_field_dict[target_class_name].append(field_name)
                                 else:
                                     cls_field_dict[target_class_name] = [field_name]
-
-
-
-                        print(element_l)
+                            else:
+                                continue
 
                 for cls in cls_method_dict.keys():
                     extract_methods = ";".join(cls_method_dict[cls])
@@ -49,8 +47,10 @@ def generate_csv():
                     if cls in cls_field_dict.keys():
                         extract_fields = ";".join(cls_field_dict[cls])
 
-                    writer.writerow(dict(zip(file_order,
-                                             [project_name, cls, extract_methods, extract_fields])))
+                    extract_methods = extract_methods.replace("\n", "")
+                    extract_fields = extract_fields.replace("\n", "")
+
+                    writer.writerow(dict(zip(file_order,[project_name, cls, extract_methods, extract_fields])))
 
 if __name__ == '__main__':
     generate_csv()
