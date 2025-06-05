@@ -104,8 +104,10 @@ def gen_auto_graph(project_name):
                 for program in sr_project.program_list:
                     for sr_class in program.class_list:
                         for sr_method in sr_class.method_list:
-                            if sr_method.method_name == row[2] and str(len(sr_method.param_list)) == row[4]:
-                                sr_method.method_name = row[4]+"And"+sr_method.method_name
+                            method_path = project_name + "_" + sr_class.class_name + "_" + sr_method.get_method_identifier()
+
+                            if sr_method.method_name == row[2] and method_path == row[6]:
+                                # sr_method.method_name = row[4]+"And"+sr_method.method_name
 
                                 extract_lines = find_extract_lines(sr_method.to_string(), row[7])
 
@@ -118,7 +120,8 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    for key in project_auto_dict.keys():
-        print(key)
-        gen_auto_graph(key)
+    # for key in project_auto_dict.keys():
+    #     print(key)
+    #     gen_auto_graph(key)
     # gen_original_graph("jgrapht")
+    gen_auto_graph("jedit")

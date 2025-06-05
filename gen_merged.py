@@ -516,7 +516,7 @@ def gen_merge_method(project):
     print("VMU %s can be fixed" % str(len(vmu_do_fix_object_list)))
     print("Do fix generation...")
 
-    field_order = ["file_name", 'class_name', 'lm_method_name', 'copy_source_method', 'label', 'program_name', 'param_count', 'extract_lines']
+    field_order = ["file_name", 'class_name', 'lm_method_name', 'copy_source_method', 'label', 'program_name', 'identifier', 'extract_lines']
     with open(save_path / "index.csv", 'w', encoding="utf-8", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, field_order)
         writer.writeheader()
@@ -525,9 +525,9 @@ def gen_merge_method(project):
         #     writer.writerow(dict(zip(field_order, [file_name, fix_object.target_sr_class.class_name, fix_object.target_method.method_name, fix_object.copy_source_method.method_name, "1", fix_object.program_name])))
         print(f"Total Num:{len(mdu_do_fix_object_list)}")
         generate_mdu(mdu_do_fix_object_list=mdu_do_fix_object_list, writer=writer, field_order=field_order,
-                     save_path=save_path)
+                     save_path=save_path, project=project)
         generate_vmu(vmu_do_fix_object_list=vmu_do_fix_object_list, writer=writer, field_order=field_order,
-                     save_path=save_path)
+                     save_path=save_path, project=project)
 
 
 def gen_merge_cls(project):
@@ -583,7 +583,7 @@ def fix_loc_var(fix_obj, idx):
     return old_var_list, new_var_list
 
 
-def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
+def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path, project):
     total_num = len(mdu_do_fix_object_list)
     finish_num = 0
     for index, fix_object in enumerate(mdu_do_fix_object_list):
@@ -626,13 +626,14 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
             extract_lines += "\n"
         sr_class_gen = copy.deepcopy(sr_class)
         sr_class_gen.class_name = sr_class.class_name + str(index)
+        method_path = project + "_" + sr_class_gen.class_name + "_" + fix_object.target_method.get_method_identifier()
 
         file_name = sr_class.class_name + ".java"
         writer.writerow(dict(zip(field_order, [file_name, sr_class_gen.class_name,
                                                fix_object.target_method.method_name,
                                                fix_object.copy_source_method.method_name, "1",
                                                fix_object.program_name,
-                                               len(fix_object.target_method.param_list),
+                                               method_path,
                                                extract_lines
                                                ])))
 
@@ -645,7 +646,7 @@ def generate_mdu(mdu_do_fix_object_list, writer, field_order, save_path):
         print("mdu {}/{} has been finished save".format(finish_num, total_num))
 
 
-def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
+def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path, project):
     total_num = len(vmu_do_fix_object_list)
     finish_num = 0
     for index, fix_object in enumerate(vmu_do_fix_object_list):
@@ -718,13 +719,13 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
             extract_lines += "\n"
         sr_class_gen = copy.deepcopy(sr_class)
         sr_class_gen.class_name = sr_class.class_name + str(index)
-
+        method_path = project + "_" + sr_class_gen.class_name + "_" + fix_object.target_method.get_method_identifier()
         file_name = sr_class.class_name + ".java"
         writer.writerow(dict(zip(field_order, [file_name, sr_class_gen.class_name,
                                                fix_object.target_method.method_name,
                                                fix_object.copy_source_method.method_name, "1",
                                                fix_object.program_name,
-                                               len(fix_object.target_method.param_list),
+                                               method_path,
                                                extract_lines
                                                ])))
 
@@ -740,4 +741,7 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path):
 if __name__ == '__main__':
     # gen_merge_cls("traccar")
     # gen_merge_method("traccar")
-    gen_move_method("traccar")
+    # gen_move_method("traccar")
+
+    for key in project_auto_dict.keys():
+        gen_merge_method(key)

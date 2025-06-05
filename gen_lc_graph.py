@@ -80,8 +80,9 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    for key in project_path_dict.keys():
-        print("=================================")
-        print(key)
-        print("=================================")
-        gen_original_graph(key)
+    for index, key in enumerate(project_path_dict.keys()):
+        if index > 7:
+            print("=================================")
+            print(key)
+            print("=================================")
+            gen_original_graph(key)
