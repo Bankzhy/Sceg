@@ -29,7 +29,10 @@ def gen_original_graph(project_name):
     sr_project = ast.do_parse()
     for program in sr_project.program_list:
         for sr_class in program.class_list:
+            if sr_class.class_name == "Completable":
+                continue
             class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
+            print(sr_class.class_name)
             class_level_graph_generator.create_graph()
             class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
 
@@ -80,9 +83,10 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    for index, key in enumerate(project_path_dict.keys()):
-        if index > 7:
-            print("=================================")
-            print(key)
-            print("=================================")
-            gen_original_graph(key)
+    gen_original_graph("rxJava")
+    # for index, key in enumerate(project_path_dict.keys()):
+    #     if index > 7:
+    #         print("=================================")
+    #         print(key)
+    #         print("=================================")
+    #         gen_original_graph(key)

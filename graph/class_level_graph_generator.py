@@ -344,7 +344,7 @@ class ClassLevelGraphGenerator:
         method_path_l = method_path.split("_")
         mn = method_path_l[len(method_path_l)-1]
         query = (
-            r"replace into fe_master (project, class_name, method_name, target_class_name, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-        values = (project_name, source_class_name, method_name, target_class_name, group, "pool", graph_json, method_path, 9, 0)
+            r"replace into fe_master (project, class_name, method_name, target_class_name, `group`, split, graph, `path`, label, reviewer_id, content) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+        values = (project_name, source_class_name, method_name, target_class_name, group, "pool", graph_json, method_path, 9, 0, source_class_name)
         cursor.execute(query, values)
         db.commit()

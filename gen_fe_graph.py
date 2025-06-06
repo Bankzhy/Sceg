@@ -143,4 +143,8 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    gen_auto_graph("jgrapht")
+    # gen_auto_graph("jgrapht")
+    for key in project_path_dict:
+        print(key)
+        print("================================")
+        gen_original_graph(key)
