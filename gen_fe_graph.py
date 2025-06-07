@@ -129,7 +129,7 @@ def gen_auto_graph(project_name):
         if target_class is not  None and source_class is not  None:
             class_level_graph_generator = ClassLevelGraphGenerator(sr_class=source_class, class_list=cls_list)
             class_level_graph_generator.create_fe_graph(target_class=target_class)
-            class_level_graph_generator.to_fe_database(db=db, project_name=sr_project.project_name, group="auto",
+            class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="auto",
                                                        source_class_name=source_class.class_name,
                                                        target_class_name=target_class.class_name,
                                                        method_name=target_method_name)

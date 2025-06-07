@@ -133,15 +133,32 @@ def grouping_lc_original():
         else:
             group_m_ids.append(lc_id)
 
-    query = r"update lc_master set `group` = %s, label=%s where id in (%s);"
-    values = ("a", 0, ",".join(group_a_ids))
-    cursor.execute(query, values)
-    db.commit()
+    # query = r"update lc_master set `group` = %s, label=%s where id in (%s);"
+    # values = ("a", 0, ",".join(group_a_ids))
+    # cursor.execute(query, values)
+    # db.commit()
+    #
+    # query = r"update lc_master set `group` = %s where id in (%s);"
+    # values = ("m", ",".join(group_m_ids))
+    # cursor.execute(query, values)
+    # db.commit()
 
-    query = r"update lc_master set `group` = %s where id in (%s);"
-    values = ("m", ",".join(group_m_ids))
-    cursor.execute(query, values)
-    db.commit()
+    if len(group_a_ids) > 0:
+        placeholders = ','.join(group_a_ids)
+        query = r"update lc_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        values = ("a", "0")
+        print(query)
+        cursor.execute(query, values)
+        db.commit()
+
+    if len(group_m_ids) > 0:
+        placeholders = ','.join(group_m_ids)
+        query = r"update lc_master set `group` = %s where id in ("+placeholders+");"
+        values = ("m")
+        print(query)
+        cursor.execute(query, values)
+        db.commit()
+
 
 
 def grouping_lc_auto():
@@ -171,15 +188,31 @@ def grouping_lc_auto():
         else:
             group_m_ids.append(lc_id)
 
-    query = r"update lc_master set `group` = %s, label=%s where id in (%s);"
-    values = ("a", 1, ",".join(group_a_ids))
-    cursor.execute(query, values)
-    db.commit()
+    # query = r"update lc_master set `group` = %s, label=%s where id in (%s);"
+    # values = ("a", 1, ",".join(group_a_ids))
+    # cursor.execute(query, values)
+    # db.commit()
+    #
+    # query = r"update lc_master set `group` = %s where id in (%s);"
+    # values = ("m", ",".join(group_m_ids))
+    # cursor.execute(query, values)
+    # db.commit()
 
-    query = r"update lc_master set `group` = %s where id in (%s);"
-    values = ("m", ",".join(group_m_ids))
-    cursor.execute(query, values)
-    db.commit()
+    if len(group_a_ids) > 0:
+        placeholders = ','.join(group_a_ids)
+        query = r"update lc_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        print(query)
+        values = ("a", "1")
+        cursor.execute(query, values)
+        db.commit()
+
+    if len(group_m_ids) > 0:
+        placeholders = ','.join(group_m_ids)
+        query = r"update lc_master set `group` = %s where id in ("+placeholders+");"
+        print(query)
+        values = ("m")
+        cursor.execute(query, values)
+        db.commit()
 
 
 def grouping_fe_original():
@@ -208,15 +241,31 @@ def grouping_fe_original():
         else:
             group_m_ids.append(fe_id)
 
-    query = r"update fe_master set `group` = %s, label=%s where id in (%s);"
-    values = ("a", 0, ",".join(group_a_ids))
-    cursor.execute(query, values)
-    db.commit()
+    # query = r"update fe_master set `group` = %s, label=%s where id in (%s);"
+    # values = ("a", 0, ",".join(group_a_ids))
+    # cursor.execute(query, values)
+    # db.commit()
+    #
+    # query = r"update fe_master set `group` = %s where id in (%s);"
+    # values = ("m", ",".join(group_m_ids))
+    # cursor.execute(query, values)
+    # db.commit()
 
-    query = r"update fe_master set `group` = %s where id in (%s);"
-    values = ("m", ",".join(group_m_ids))
-    cursor.execute(query, values)
-    db.commit()
+    if len(group_a_ids) > 0:
+        placeholders = ','.join(group_a_ids)
+        query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        values = ("a", "0")
+        print(query)
+        cursor.execute(query, values)
+        db.commit()
+
+    if len(group_m_ids) > 0:
+        placeholders = ','.join(group_m_ids)
+        query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
+        values = ("m")
+        print(query)
+        cursor.execute(query, values)
+        db.commit()
 
 def grouping_fe_auto():
     group_a_ids = []
@@ -244,15 +293,31 @@ def grouping_fe_auto():
         else:
             group_m_ids.append(fe_id)
 
-    query = r"update fe_master set `group` = %s, label=%s where id in (%s);"
-    values = ("a", 1, ",".join(group_a_ids))
-    cursor.execute(query, values)
-    db.commit()
+    # query = r"update fe_master set `group` = %s, label=%s where id in (%s);"
+    # values = ("a", 1, ",".join(group_a_ids))
+    # cursor.execute(query, values)
+    # db.commit()
+    #
+    # query = r"update fe_master set `group` = %s where id in (%s);"
+    # values = ("m", ",".join(group_m_ids))
+    # cursor.execute(query, values)
+    # db.commit()
 
-    query = r"update fe_master set `group` = %s where id in (%s);"
-    values = ("m", ",".join(group_m_ids))
-    cursor.execute(query, values)
-    db.commit()
+    if len(group_a_ids) > 0:
+        placeholders = ','.join(group_a_ids)
+        query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        print(query)
+        values = ("a", "1")
+        cursor.execute(query, values)
+        db.commit()
+
+    if len(group_m_ids) > 0:
+        placeholders = ','.join(group_m_ids)
+        query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
+        print(query)
+        values = ("m")
+        cursor.execute(query, values)
+        db.commit()
 
 
 if __name__ == '__main__':
