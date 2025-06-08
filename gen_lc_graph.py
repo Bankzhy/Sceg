@@ -27,11 +27,16 @@ def gen_original_graph(project_name):
     ast = KASTParse(project_path, "java")
     ast.setup()
     sr_project = ast.do_parse()
+    class_list = []
     for program in sr_project.program_list:
         for sr_class in program.class_list:
-            if sr_class.class_name == "Completable":
+            class_list.append(sr_class)
+
+    for program in sr_project.program_list:
+        for sr_class in program.class_list:
+            if sr_class.class_name == "Flowable" or sr_class.class_name == "Observable":
                 continue
-            class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
+            class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=class_list)
             print(sr_class.class_name)
             class_level_graph_generator.create_graph()
             class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
@@ -52,10 +57,11 @@ def gen_auto_graph(project_name):
     path = project_auto_dict[project_name] / "lc/"
     doc_sim = DocSim()
 
-    with open(path+"index.csv", mode='r') as file:
+    with open(path / "index.csv", mode='r') as file:
         reader = csv.reader(file)
         for index, row in enumerate(reader):
-
+            if index == 0:
+                continue
             file_path = path / row[0]
             ast = KASTParse(file_path, "java")
             ast.setup()
@@ -69,11 +75,17 @@ def gen_auto_graph(project_name):
                     target_class_name = merged_class_name_l[2]
                     source_class_name = merged_class_name_l[3]
 
+                    if source_class_name == "Flowable" or source_class_name == "Observable":
+                        continue
+                    if target_class_name == "Flowable" or target_class_name == "Observable":
+                        continue
+
                     source_class_graph = find_class_graph_from_database(source_class_name, project_name)
                     target_class_graph = find_class_graph_from_database(target_class_name, project_name)
 
                     class_level_graph_generator = ClassLevelGraphGenerator(sr_class=sr_class, class_list=[])
                     class_level_graph_generator.create_merge_graph(source_class_graph=source_class_graph, target_class_graph=target_class_graph, doc_sim=doc_sim)
+                    # print(row[4])
                     class_level_graph_generator.to_database(db=db, project_name=project_name, group="auto", extract_methods=row[4])
 
 
@@ -83,10 +95,13 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    gen_original_graph("rxJava")
     # for index, key in enumerate(project_path_dict.keys()):
-    #     if index > 7:
-    #         print("=================================")
-    #         print(key)
-    #         print("=================================")
-    #         gen_original_graph(key)
+    #     print("=================================")
+    #     print(key)
+    #     gen_original_graph(key)
+    for index, key in enumerate(project_auto_dict.keys()):
+        print("=================================")
+        print(key)
+        print("=================================")
+        gen_auto_graph(key)
+    # gen_auto_graph("rxJava")

@@ -333,8 +333,10 @@ class ClassLevelGraphGenerator:
     def to_database(self, db, project_name, group, extract_methods=""):
         cursor = db.cursor()
         graph_json = self.to_json()
+        path = self.sr_class.package_name + "."
+        path = path + self.sr_class.class_name
         query = (r"replace into lc_master (project, class_name, content, extract_methods, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-        values = (project_name, self.sr_class.class_name, self.sr_class.class_name, extract_methods, group, "pool", graph_json, self.sr_class.package_name, 9, 0)
+        values = (project_name, self.sr_class.class_name, self.sr_class.class_name, extract_methods, group, "pool", graph_json, path, 9, 0)
         cursor.execute(query, values)
         db.commit()
 
