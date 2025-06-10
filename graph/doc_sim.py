@@ -4,7 +4,9 @@ from sentence_transformers import SentenceTransformer
 
 class DocSim:
     def __init__(self, stopwords=None):
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        # self.model = SentenceTransformer(r"D:\all-mini")
+        # self.model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('./local-model')
         self.stopwords = stopwords if stopwords is not None else []
 
     def vectorize(self, doc: str) -> np.ndarray:

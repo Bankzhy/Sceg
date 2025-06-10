@@ -1,3 +1,4 @@
+import csv
 import json
 
 import numpy as np
@@ -204,6 +205,7 @@ class ClassLevelGraphGenerator:
         cam = metrics_calc.get_cam()
         merged_dit = max(source_class_node["metrics"]["dit"], target_class_node["metrics"]["dit"])
         merged_noam = source_class_node["metrics"]["noam"] + target_class_node["metrics"]["noam"]
+        merged_class_loc = source_class_node["metrics"]["class_loc"] + target_class_node["metrics"]["class_loc"]
 
         new_class_node = {
             "id": self.__get_id(),
@@ -220,7 +222,9 @@ class ClassLevelGraphGenerator:
                 "dcc": merged_dcc,
                 "cam": cam,
                 "dit": merged_dit,
-                "noam": merged_noam
+                "noam": merged_noam,
+                "class_loc": merged_class_loc,
+                "dist": 0
             }
         }
         self.nodes.append(new_class_node)
@@ -339,6 +343,12 @@ class ClassLevelGraphGenerator:
         values = (project_name, self.sr_class.class_name, self.sr_class.class_name, extract_methods, group, "pool", graph_json, path, 9, 0)
         cursor.execute(query, values)
         db.commit()
+
+    def to_list(self, db, project_name, group, extract_methods=""):
+        graph_json = self.to_json()
+        path = self.sr_class.package_name + "."
+        path = path + self.sr_class.class_name
+        return [project_name, self.sr_class.class_name, self.sr_class.class_name, extract_methods, group, "pool", graph_json, path, 9, 0]
 
     def to_fe_database(self, db, project_name, group, source_class_name, target_class_name, method_path, method_name):
         cursor = db.cursor()

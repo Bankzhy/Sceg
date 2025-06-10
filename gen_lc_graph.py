@@ -56,6 +56,7 @@ def find_class_graph_from_database(name, project):
 def gen_auto_graph(project_name):
     path = project_auto_dict[project_name] / "lc/"
     doc_sim = DocSim()
+    csv_rows = []
 
     with open(path / "index.csv", mode='r') as file:
         reader = csv.reader(file)
@@ -70,28 +71,57 @@ def gen_auto_graph(project_name):
             sr_project = ast.do_parse_content(file_content)
             for program in sr_project.program_list:
                 for sr_class in program.class_list:
-                    merged_class_name = sr_class.class_name
-                    merged_class_name_l = merged_class_name.split("_")
-                    target_class_name = merged_class_name_l[2]
-                    source_class_name = merged_class_name_l[3]
+                    try:
+                        merged_class_name = sr_class.class_name
+                        merged_class_name_l = merged_class_name.split("_")
+                        target_class_name = merged_class_name_l[2]
+                        source_class_name = merged_class_name_l[3]
 
-                    if source_class_name == "Flowable" or source_class_name == "Observable":
+                        if source_class_name == "Flowable" or source_class_name == "Observable":
+                            continue
+                        if target_class_name == "Flowable" or target_class_name == "Observable":
+                            continue
+
+                        source_class_graph = find_class_graph_from_database(source_class_name, project_name)
+                        target_class_graph = find_class_graph_from_database(target_class_name, project_name)
+
+                        class_level_graph_generator = ClassLevelGraphGenerator(sr_class=sr_class, class_list=[])
+                        class_level_graph_generator.create_merge_graph(source_class_graph=source_class_graph, target_class_graph=target_class_graph, doc_sim=doc_sim)
+                        # print(row[4])
+                        # class_level_graph_generator.to_database(db=db, project_name=project_name, group="auto", extract_methods=row[4])
+
+                        row = class_level_graph_generator.to_list(db=db, project_name=project_name, group="auto", extract_methods=row[4])
+                        csv_rows.append(row)
+                    except Exception as e:
+                        print(e)
                         continue
-                    if target_class_name == "Flowable" or target_class_name == "Observable":
-                        continue
 
-                    source_class_graph = find_class_graph_from_database(source_class_name, project_name)
-                    target_class_graph = find_class_graph_from_database(target_class_name, project_name)
-
-                    class_level_graph_generator = ClassLevelGraphGenerator(sr_class=sr_class, class_list=[])
-                    class_level_graph_generator.create_merge_graph(source_class_graph=source_class_graph, target_class_graph=target_class_graph, doc_sim=doc_sim)
-                    # print(row[4])
-                    class_level_graph_generator.to_database(db=db, project_name=project_name, group="auto", extract_methods=row[4])
+    file_order = ["project", "class_name", "content", "extract_methods", "group", "split", "graph",
+                  "path", "label", "reviewer_id"]
+    with open("index.csv", "w", newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, file_order)
+        writer.writeheader()
+        for row in csv_rows:
+            writer.writerow(dict(zip(file_order, row)))
 
 
 
 
 
+def from_csv():
+    cursor = db.cursor()
+
+    with open('index.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+            print(row)
+            query = (
+                r"replace into lc_master (project, class_name, content, extract_methods, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+            values = (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9])
+            cursor.execute(query, values)
+            db.commit()
 
 
 if __name__ == '__main__':
@@ -105,3 +135,4 @@ if __name__ == '__main__':
         print("=================================")
         gen_auto_graph(key)
     # gen_auto_graph("rxJava")
+    # from_csv()

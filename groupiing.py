@@ -122,16 +122,16 @@ def grouping_lc_original():
         nodes = lc_graph["nodes"]
         for node in nodes:
             if node["type"] == "class":
-                loc = node["metrics"]["loc"]
+                loc = node["metrics"]["class_loc"]
                 nom = node["metrics"]["nom"]
                 noa = node["metrics"]["noa"]
 
         if loc <= MIN_CLS_LOC and noa <= MIN_NOA and nom <= MIN_NOM:
-            group_a_ids.append(lc_id)
+            group_a_ids.append(str(lc_id))
         elif loc == None:
             continue
         else:
-            group_m_ids.append(lc_id)
+            group_m_ids.append(str(lc_id))
 
     # query = r"update lc_master set `group` = %s, label=%s where id in (%s);"
     # values = ("a", 0, ",".join(group_a_ids))
@@ -145,7 +145,7 @@ def grouping_lc_original():
 
     if len(group_a_ids) > 0:
         placeholders = ','.join(group_a_ids)
-        query = r"update lc_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        query = r"update lc_master set `group` = %s, label=%s where lc_id in ("+placeholders+");"
         values = ("a", "0")
         print(query)
         cursor.execute(query, values)
@@ -153,7 +153,7 @@ def grouping_lc_original():
 
     if len(group_m_ids) > 0:
         placeholders = ','.join(group_m_ids)
-        query = r"update lc_master set `group` = %s where id in ("+placeholders+");"
+        query = r"update lc_master set `group` = %s where lc_id in ("+placeholders+");"
         values = ("m")
         print(query)
         cursor.execute(query, values)
@@ -171,22 +171,23 @@ def grouping_lc_auto():
         lc_id = row[0]
         lc_graph = row[7]
         lc_graph = json.loads(lc_graph)
+        print(lc_graph)
         loc = None
         nom = None
         noa = None
         nodes = lc_graph["nodes"]
         for node in nodes:
             if node["type"] == "class":
-                loc = node["metrics"]["loc"]
+                loc = node["metrics"]["class_loc"]
                 nom = node["metrics"]["nom"]
                 noa = node["metrics"]["noa"]
 
         if loc > MIN_CLS_LOC and noa > MIN_NOA and nom > MIN_NOM:
-            group_a_ids.append(lc_id)
+            group_a_ids.append(str(lc_id))
         elif loc == None:
             continue
         else:
-            group_m_ids.append(lc_id)
+            group_m_ids.append(str(lc_id))
 
     # query = r"update lc_master set `group` = %s, label=%s where id in (%s);"
     # values = ("a", 1, ",".join(group_a_ids))
@@ -200,7 +201,7 @@ def grouping_lc_auto():
 
     if len(group_a_ids) > 0:
         placeholders = ','.join(group_a_ids)
-        query = r"update lc_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        query = r"update lc_master set `group` = %s, label=%s where lc_id in ("+placeholders+");"
         print(query)
         values = ("a", "1")
         cursor.execute(query, values)
@@ -208,7 +209,7 @@ def grouping_lc_auto():
 
     if len(group_m_ids) > 0:
         placeholders = ','.join(group_m_ids)
-        query = r"update lc_master set `group` = %s where id in ("+placeholders+");"
+        query = r"update lc_master set `group` = %s where lc_id in ("+placeholders+");"
         print(query)
         values = ("m")
         cursor.execute(query, values)
@@ -321,4 +322,6 @@ def grouping_fe_auto():
 
 
 if __name__ == '__main__':
-    grouping_lm_auto()
+    # grouping_lm_auto()
+    # grouping_lc_original()
+    grouping_lc_auto()

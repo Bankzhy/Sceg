@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pymysql
 
-from gen_merged import project_path_dict
+from common import project_auto_dict, project_path_dict
 from graph.class_level_graph_generator import ClassLevelGraphGenerator
 from graph.doc_sim import DocSim
 from graph.matrix_construction import MatrixConstruction
@@ -21,13 +21,6 @@ db = pymysql.connect(
     charset="utf8mb4",  # Use utf8mb4 for full Unicode support
     connect_timeout=50
 )
-
-project_path_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht")
-}
-project_auto_dict = {
-    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto")
-}
 
 def find_related_class(sr_method, cls_name_list, field_name_dict):
 
@@ -74,7 +67,7 @@ def gen_original_graph(project_name):
                         target_class = cls_list[cls_name_list.index(rcls)]
                         class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
                         class_level_graph_generator.create_fe_graph(target_class=target_class, target_method=method)
-                        class_level_graph_generator.to_fe_database(db=db, project_name=sr_project.project_name, group="original", source_class_name=sr_class.class_name, target_class_name=target_class.class_name, method_path=method_path, method_name=method.method_name)
+                        class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="original", source_class_name=sr_class.class_name, target_class_name=target_class.class_name, method_path=method_path, method_name=method.method_name)
             # class_level_graph_generator.create_graph()
             # class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
 
@@ -144,7 +137,9 @@ def gen_auto_graph(project_name):
 
 if __name__ == '__main__':
     # gen_auto_graph("jgrapht")
-    for key in project_path_dict:
+    for index, key in enumerate(project_path_dict):
+        if index == 0:
+            continue
         print(key)
         print("================================")
         gen_original_graph(key)
