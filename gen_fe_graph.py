@@ -61,6 +61,8 @@ def gen_original_graph(project_name):
                 related_classes = find_related_class(sr_method=method, cls_name_list=cls_name_list, field_name_dict=field_name_dict)
 
                 method_path = project_name + "_" + sr_class.class_name + "_" + method.get_method_identifier()
+                if len(method_path) > 250:
+                    method_path = method_path[0:250]
 
                 if len(related_classes) > 0:
                     for rcls in related_classes:
@@ -137,9 +139,12 @@ def gen_auto_graph(project_name):
 
 if __name__ == '__main__':
     # gen_auto_graph("jgrapht")
-    for index, key in enumerate(project_path_dict):
-        if index == 0:
-            continue
-        print(key)
-        print("================================")
-        gen_original_graph(key)
+    # for index, key in enumerate(project_path_dict):
+    #     if index < 2:
+    #         continue
+    #     print(key)
+    #     print("================================")
+    #     gen_original_graph(key)
+    print("netty")
+    print("================================")
+    gen_original_graph("netty")

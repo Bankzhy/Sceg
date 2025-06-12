@@ -1,4 +1,9 @@
 import csv
+OVER_SIZE_LIMIT = 200_000_000
+
+csv.field_size_limit(OVER_SIZE_LIMIT)
+
+# 以下、書きたい処理
 import json
 import os
 from pathlib import Path
@@ -98,7 +103,7 @@ def gen_auto_graph(project_name):
 
     file_order = ["project", "class_name", "content", "extract_methods", "group", "split", "graph",
                   "path", "label", "reviewer_id"]
-    with open("index.csv", "w", newline='') as csvfile:
+    with open((project_name+"index.csv"), "w", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, file_order)
         writer.writeheader()
         for row in csv_rows:
@@ -111,17 +116,21 @@ def gen_auto_graph(project_name):
 def from_csv():
     cursor = db.cursor()
 
-    with open('index.csv', newline='') as csvfile:
+    with open('grootindex.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         for index, row in enumerate(reader):
             if index == 0:
                 continue
             print(row)
-            query = (
-                r"replace into lc_master (project, class_name, content, extract_methods, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-            values = (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9])
-            cursor.execute(query, values)
-            db.commit()
+            try:
+                query = (
+                    r"replace into lc_master (project, class_name, content, extract_methods, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+                values = (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9])
+                cursor.execute(query, values)
+                db.commit()
+            except Exception as e:
+                print(e)
+                continue
 
 
 if __name__ == '__main__':
@@ -129,10 +138,16 @@ if __name__ == '__main__':
     #     print("=================================")
     #     print(key)
     #     gen_original_graph(key)
-    for index, key in enumerate(project_auto_dict.keys()):
-        print("=================================")
-        print(key)
-        print("=================================")
-        gen_auto_graph(key)
+    # for index, key in enumerate(project_auto_dict.keys()):
+    #     if index == 0:
+    #         continue
+    #     if index == 1:
+    #         continue
+    #     if index == 9:
+    #         continue
+    #     print("=================================")
+    #     print(key)
+    #     print("=================================")
+    #     gen_auto_graph(key)
     # gen_auto_graph("rxJava")
-    # from_csv()
+    from_csv()

@@ -170,8 +170,16 @@ def grouping_lc_auto():
     for row in cursor.fetchall():
         lc_id = row[0]
         lc_graph = row[7]
+
+        if "class_loc" not in lc_graph:
+            print("error example:")
+            print(row)
+            continue
+
         lc_graph = json.loads(lc_graph)
         print(lc_graph)
+
+
         loc = None
         nom = None
         noa = None

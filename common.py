@@ -11,7 +11,7 @@ project_path_dict = {
     "jedit": Path(r"D:\research\code_corpus\jEdit\org\jedit"),
     "rxJava": Path(r"D:\research\code_corpus\RxJava\src\main\java"),
     "junit4": Path(r"D:\research\code_corpus\junit4\src\main"),
-    "mybatis3": Path(r"D:\research\code_corpus\mybatis-3\src\main"),
+    "mybatis3": Path(r"D:\research\code_corpus\mybatis3\src\main"),
     "netty": Path(r"D:\research\code_corpus\netty\codec-base\src\main"),
     "gephi": Path(r"D:\research\code_corpus\gephi\modules"),
     "plantuml": Path(r"D:\research\code_corpus\plantuml\src\main"),

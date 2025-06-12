@@ -321,9 +321,9 @@ class ClassLevelGraphGenerator:
                     self.csm_edges.append(new_csm_edge)
 
     def create_fe_graph(self, target_class, target_method):
-        self.create_graph()
+        self.create_graph(target_method=target_method)
         self.sr_class = target_class
-        self.create_graph()
+        self.create_graph(target_method=target_method)
 
     def to_json(self):
         info = {}
