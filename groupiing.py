@@ -230,10 +230,12 @@ def grouping_fe_original():
 
     cursor = db.cursor()
     cursor.execute("SELECT * FROM fe_master where `group`='original'")
-    for row in cursor.fetchall():
+    rows = cursor.fetchall()
+    db.close()
+    for row in rows:
         fe_id = row[0]
-        fe_graph = row[7]
-        target_method_name = row[2]
+        fe_graph = row[8]
+        target_method_name = row[3]
         fe_graph = json.loads(fe_graph)
 
         nfdi = None
@@ -244,11 +246,15 @@ def grouping_fe_original():
                     nfdi = node["metrics"]["nfdi"]
 
         if nfdi <= MIN_NFDI:
-            group_a_ids.append(fe_id)
+            group_a_ids.append(str(fe_id))
         elif nfdi == None:
             continue
         else:
-            group_m_ids.append(fe_id)
+            group_m_ids.append(str(fe_id))
+    with open("fe_original.txt", "w") as f:
+        f.write(",".join(group_a_ids))
+        f.write("\n")
+        f.write(",".join(group_m_ids))
 
     # query = r"update fe_master set `group` = %s, label=%s where id in (%s);"
     # values = ("a", 0, ",".join(group_a_ids))
@@ -260,21 +266,21 @@ def grouping_fe_original():
     # cursor.execute(query, values)
     # db.commit()
 
-    if len(group_a_ids) > 0:
-        placeholders = ','.join(group_a_ids)
-        query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
-        values = ("a", "0")
-        print(query)
-        cursor.execute(query, values)
-        db.commit()
-
-    if len(group_m_ids) > 0:
-        placeholders = ','.join(group_m_ids)
-        query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
-        values = ("m")
-        print(query)
-        cursor.execute(query, values)
-        db.commit()
+    # if len(group_a_ids) > 0:
+    #     placeholders = ','.join(group_a_ids)
+    #     query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
+    #     values = ("a", "0")
+    #     print(query)
+    #     cursor.execute(query, values)
+    #     db.commit()
+    #
+    # if len(group_m_ids) > 0:
+    #     placeholders = ','.join(group_m_ids)
+    #     query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
+    #     values = ("m")
+    #     print(query)
+    #     cursor.execute(query, values)
+    #     db.commit()
 
 def grouping_fe_auto():
     group_a_ids = []
@@ -332,4 +338,5 @@ def grouping_fe_auto():
 if __name__ == '__main__':
     # grouping_lm_auto()
     # grouping_lc_original()
-    grouping_lc_auto()
+    # grouping_lc_auto()
+    grouping_fe_original()

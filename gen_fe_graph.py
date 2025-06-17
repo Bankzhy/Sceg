@@ -52,6 +52,8 @@ def gen_original_graph(project_name):
 
     for program in sr_project.program_list:
         for sr_class in program.class_list:
+            if sr_class.class_name == "Flowable" or sr_class.class_name == "Observable":
+                continue
             field_name_dict = {}
             for field in sr_class.field_list:
                 if field.field_type in cls_name_list:
@@ -106,6 +108,7 @@ def gen_auto_graph(project_name):
         source_class_name = sample_path_l[1]
         target_class_name = sample_path_l[0]
         target_method_name = sample_path_l[2]
+        target_method = None
         source_class = None
         target_class = None
 
@@ -122,12 +125,23 @@ def gen_auto_graph(project_name):
                     target_class = sr_class
 
         if target_class is not  None and source_class is not  None:
+            method_path = project_name + "_" + source_class.class_name + "_" + target_method_name + "_" + "auto"
+
+            for method in source_class.method_list:
+                if method.method_name == target_method_name:
+                    target_method = method
+
+
             class_level_graph_generator = ClassLevelGraphGenerator(sr_class=source_class, class_list=cls_list)
-            class_level_graph_generator.create_fe_graph(target_class=target_class)
+            class_level_graph_generator.create_fe_graph(target_class=target_class, target_method=target_method)
+            # class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="auto",
+            #                                            source_class_name=source_class.class_name,
+            #                                            target_class_name=target_class.class_name,
+            #                                            method_name=target_method_name)
             class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="auto",
                                                        source_class_name=source_class.class_name,
                                                        target_class_name=target_class.class_name,
-                                                       method_name=target_method_name)
+                                                       method_path=method_path, method_name=target_method_name)
 
 
 
@@ -139,12 +153,10 @@ def gen_auto_graph(project_name):
 
 if __name__ == '__main__':
     # gen_auto_graph("jgrapht")
-    # for index, key in enumerate(project_path_dict):
-    #     if index < 2:
-    #         continue
-    #     print(key)
-    #     print("================================")
-    #     gen_original_graph(key)
-    print("netty")
-    print("================================")
-    gen_original_graph("netty")
+    for index, key in enumerate(project_auto_dict):
+        print(key)
+        print("================================")
+        gen_auto_graph(key)
+    # print("openrefine")
+    # print("================================")
+    # gen_original_graph("openrefine")

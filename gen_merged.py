@@ -744,4 +744,4 @@ if __name__ == '__main__':
     # gen_move_method("traccar")
 
     for key in project_auto_dict.keys():
-        gen_merge_method(key)
+        gen_move_method(key)
