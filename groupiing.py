@@ -229,7 +229,7 @@ def grouping_fe_original():
     group_m_ids = []
 
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM fe_master where `group`='original'")
+    cursor.execute("SELECT * FROM fe_master where `group`='original' limit 5000")
     rows = cursor.fetchall()
     db.close()
     for row in rows:
@@ -251,10 +251,10 @@ def grouping_fe_original():
             continue
         else:
             group_m_ids.append(str(fe_id))
-    with open("fe_original.txt", "w") as f:
-        f.write(",".join(group_a_ids))
-        f.write("\n")
-        f.write(",".join(group_m_ids))
+    # with open("fe_original.txt", "w") as f:
+    #     f.write(",".join(group_a_ids))
+    #     f.write("\n")
+    #     f.write(",".join(group_m_ids))
 
     # query = r"update fe_master set `group` = %s, label=%s where id in (%s);"
     # values = ("a", 0, ",".join(group_a_ids))
@@ -266,21 +266,21 @@ def grouping_fe_original():
     # cursor.execute(query, values)
     # db.commit()
 
-    # if len(group_a_ids) > 0:
-    #     placeholders = ','.join(group_a_ids)
-    #     query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
-    #     values = ("a", "0")
-    #     print(query)
-    #     cursor.execute(query, values)
-    #     db.commit()
-    #
-    # if len(group_m_ids) > 0:
-    #     placeholders = ','.join(group_m_ids)
-    #     query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
-    #     values = ("m")
-    #     print(query)
-    #     cursor.execute(query, values)
-    #     db.commit()
+    if len(group_a_ids) > 0:
+        placeholders = ','.join(group_a_ids)
+        query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        values = ("a", "0")
+        print(query)
+        cursor.execute(query, values)
+        db.commit()
+
+    if len(group_m_ids) > 0:
+        placeholders = ','.join(group_m_ids)
+        query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
+        values = ("m")
+        print(query)
+        cursor.execute(query, values)
+        db.commit()
 
 def grouping_fe_auto():
     group_a_ids = []
