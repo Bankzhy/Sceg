@@ -229,9 +229,9 @@ def grouping_fe_original():
     group_m_ids = []
 
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM fe_master where `group`='original' limit 5000")
+    cursor.execute("SELECT * FROM fe_master where `group`='original' limit 500")
     rows = cursor.fetchall()
-    db.close()
+
     for row in rows:
         fe_id = row[0]
         fe_graph = row[8]
@@ -268,7 +268,7 @@ def grouping_fe_original():
 
     if len(group_a_ids) > 0:
         placeholders = ','.join(group_a_ids)
-        query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        query = r"update fe_master set `group` = %s, label=%s where fe_id in ("+placeholders+");"
         values = ("a", "0")
         print(query)
         cursor.execute(query, values)
@@ -276,7 +276,7 @@ def grouping_fe_original():
 
     if len(group_m_ids) > 0:
         placeholders = ','.join(group_m_ids)
-        query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
+        query = r"update fe_master set `group` = %s where fe_id in ("+placeholders+");"
         values = ("m")
         print(query)
         cursor.execute(query, values)
