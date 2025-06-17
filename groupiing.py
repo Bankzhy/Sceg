@@ -229,7 +229,7 @@ def grouping_fe_original():
     group_m_ids = []
 
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM fe_master where `group`='original' limit 500")
+    cursor.execute("SELECT * FROM fe_master where `group`='original' limit 5000")
     rows = cursor.fetchall()
 
     for row in rows:
