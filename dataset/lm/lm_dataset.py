@@ -143,8 +143,8 @@ class LMDataset(DGLDataset):
         for edge in include_edges:
             source = nodes_ids.index(edge["source"])
             target = nodes_ids.index(edge["target"])
-            dd_edge_index[0].append(source)
-            dd_edge_index[1].append(target)
+            include_edge_index[0].append(source)
+            include_edge_index[1].append(target)
 
         data_dict = {}
 
@@ -169,88 +169,8 @@ class LMDataset(DGLDataset):
         else:
             data_dict[('method', 'include', 'statement')] = (torch.tensor([0]), torch.tensor([0]))
 
-    def _get_graph(self, new_graph):
-        nodes_ids = []
-        cf_edge_index = []
-        dd_edge_index = []
-        cd_edge_index = []
-        nodes_feature = []
-        nodes_labels = []
-        method_feature = []
-
-
-        # add node feature
-        node_df = pd.read_csv(path / "node.csv")
-        nodes_ids = list(node_df['id'])
-        # nodes_labels = list(node_df['from_cps'])
-        # nodes_feature = list(node_df['category'])
-        node_row_num = node_df.shape[0]
-        for i in range(0, node_row_num):
-            # nodes_feature.append(list(node_df.iloc[i, 1:(node_df.shape[1]-1)]))
-            nodes_feature.append(list(node_df.iloc[i, 1:]))
-
-
-
         num_nodes_dict = {'statement': len(nodes_ids)}
         num_nodes_dict['method'] = 1
-
-
-        # add method feature
-        method_df = pd.read_csv(path / "method.csv")
-        method_row_num = method_df.shape[0]
-        for i in range(0, method_row_num):
-            method_feature.append(list(method_df.iloc[i, 1:]))
-
-        # add cf_edge_index
-        cf_edge_index_df = pd.read_csv(path / "cf_edge_index.csv")
-        edge_index_row_num = cf_edge_index_df.shape[0]
-        for i in range(0, edge_index_row_num):
-            f = lambda x: nodes_ids.index(x)
-            cf_edge_index.append(list(cf_edge_index_df.iloc[i, 1:].apply(f)))
-
-        # add dd_edge_index
-        dd_edge_index_df = pd.read_csv(path / "dd_edge_index.csv")
-        edge_index_row_num = dd_edge_index_df.shape[0]
-        for i in range(0, edge_index_row_num):
-            f = lambda x: nodes_ids.index(x)
-            dd_edge_index.append(list(dd_edge_index_df.iloc[i, 1:].apply(f)))
-
-        # add cd_edge_index
-        cd_edge_index_df = pd.read_csv(path / "cd_edge_index.csv")
-        edge_index_row_num = cd_edge_index_df.shape[0]
-        for i in range(0, edge_index_row_num):
-            f = lambda x: nodes_ids.index(x)
-            cd_edge_index.append(list(cd_edge_index_df.iloc[i, 1:].apply(f)))
-
-        data_dict = {}
-
-
-
-        if len(cf_edge_index) > 0 and len(cf_edge_index[0]) > 0:
-            data_dict[('statement', 'cf', 'statement')] = (torch.tensor(cf_edge_index[0]), torch.tensor(cf_edge_index[1]))
-        else:
-            data_dict[('statement', 'cf', 'statement')] = (torch.tensor([0]), torch.tensor([0]))
-        if len(dd_edge_index) > 0 and len(dd_edge_index[0]) > 0:
-            data_dict[('statement', 'dd', 'statement')] = (
-            torch.tensor(dd_edge_index[0]), torch.tensor(dd_edge_index[1]))
-        else:
-            data_dict[('statement', 'dd', 'statement')] = (
-                torch.tensor([0]), torch.tensor([0]))
-        if len(cd_edge_index) > 0 and len(cd_edge_index[0]) > 0:
-            data_dict[('statement', 'cd', 'statement')] = (
-            torch.tensor(cd_edge_index[0]), torch.tensor(cd_edge_index[1]))
-        else:
-            data_dict[('statement', 'cd', 'statement')] = (
-                torch.tensor([0]), torch.tensor([0]))
-
-        method_nodes = []
-        statement_nodes = []
-        for index, id in enumerate(nodes_ids):
-            method_nodes.append(0)
-            statement_nodes.append(index)
-
-        data_dict[('method', 'include', 'method')] = (torch.tensor([0]), torch.tensor([0]))
-        data_dict[('method', 'include', 'statement')] = (torch.tensor(method_nodes), torch.tensor(statement_nodes))
 
         G = dgl.heterograph(data_dict=data_dict, num_nodes_dict=num_nodes_dict)
 
@@ -263,6 +183,101 @@ class LMDataset(DGLDataset):
         print(G)
 
         return G
+
+    # def _get_graph(self, new_graph):
+    #     nodes_ids = []
+    #     cf_edge_index = []
+    #     dd_edge_index = []
+    #     cd_edge_index = []
+    #     nodes_feature = []
+    #     nodes_labels = []
+    #     method_feature = []
+    #
+    #
+    #     # add node feature
+    #     node_df = pd.read_csv(path / "node.csv")
+    #     nodes_ids = list(node_df['id'])
+    #     # nodes_labels = list(node_df['from_cps'])
+    #     # nodes_feature = list(node_df['category'])
+    #     node_row_num = node_df.shape[0]
+    #     for i in range(0, node_row_num):
+    #         # nodes_feature.append(list(node_df.iloc[i, 1:(node_df.shape[1]-1)]))
+    #         nodes_feature.append(list(node_df.iloc[i, 1:]))
+    #
+    #
+    #
+    #     num_nodes_dict = {'statement': len(nodes_ids)}
+    #     num_nodes_dict['method'] = 1
+    #
+    #
+    #     # add method feature
+    #     method_df = pd.read_csv(path / "method.csv")
+    #     method_row_num = method_df.shape[0]
+    #     for i in range(0, method_row_num):
+    #         method_feature.append(list(method_df.iloc[i, 1:]))
+    #
+    #     # add cf_edge_index
+    #     cf_edge_index_df = pd.read_csv(path / "cf_edge_index.csv")
+    #     edge_index_row_num = cf_edge_index_df.shape[0]
+    #     for i in range(0, edge_index_row_num):
+    #         f = lambda x: nodes_ids.index(x)
+    #         cf_edge_index.append(list(cf_edge_index_df.iloc[i, 1:].apply(f)))
+    #
+    #     # add dd_edge_index
+    #     dd_edge_index_df = pd.read_csv(path / "dd_edge_index.csv")
+    #     edge_index_row_num = dd_edge_index_df.shape[0]
+    #     for i in range(0, edge_index_row_num):
+    #         f = lambda x: nodes_ids.index(x)
+    #         dd_edge_index.append(list(dd_edge_index_df.iloc[i, 1:].apply(f)))
+    #
+    #     # add cd_edge_index
+    #     cd_edge_index_df = pd.read_csv(path / "cd_edge_index.csv")
+    #     edge_index_row_num = cd_edge_index_df.shape[0]
+    #     for i in range(0, edge_index_row_num):
+    #         f = lambda x: nodes_ids.index(x)
+    #         cd_edge_index.append(list(cd_edge_index_df.iloc[i, 1:].apply(f)))
+    #
+    #     data_dict = {}
+    #
+    #
+    #
+    #     if len(cf_edge_index) > 0 and len(cf_edge_index[0]) > 0:
+    #         data_dict[('statement', 'cf', 'statement')] = (torch.tensor(cf_edge_index[0]), torch.tensor(cf_edge_index[1]))
+    #     else:
+    #         data_dict[('statement', 'cf', 'statement')] = (torch.tensor([0]), torch.tensor([0]))
+    #     if len(dd_edge_index) > 0 and len(dd_edge_index[0]) > 0:
+    #         data_dict[('statement', 'dd', 'statement')] = (
+    #         torch.tensor(dd_edge_index[0]), torch.tensor(dd_edge_index[1]))
+    #     else:
+    #         data_dict[('statement', 'dd', 'statement')] = (
+    #             torch.tensor([0]), torch.tensor([0]))
+    #     if len(cd_edge_index) > 0 and len(cd_edge_index[0]) > 0:
+    #         data_dict[('statement', 'cd', 'statement')] = (
+    #         torch.tensor(cd_edge_index[0]), torch.tensor(cd_edge_index[1]))
+    #     else:
+    #         data_dict[('statement', 'cd', 'statement')] = (
+    #             torch.tensor([0]), torch.tensor([0]))
+    #
+    #     method_nodes = []
+    #     statement_nodes = []
+    #     for index, id in enumerate(nodes_ids):
+    #         method_nodes.append(0)
+    #         statement_nodes.append(index)
+    #
+    #     data_dict[('method', 'include', 'method')] = (torch.tensor([0]), torch.tensor([0]))
+    #     data_dict[('method', 'include', 'statement')] = (torch.tensor(method_nodes), torch.tensor(statement_nodes))
+    #
+    #     G = dgl.heterograph(data_dict=data_dict, num_nodes_dict=num_nodes_dict)
+    #
+    #     G.nodes['method'].data['feat'] = torch.tensor(method_feature).to(torch.float32)
+    #     G.nodes['statement'].data['feat'] = torch.tensor(nodes_feature).to(torch.float32)
+    #
+    #     # node cls
+    #     # G.nodes['statement'].data['label'] = torch.tensor(nodes_labels)
+    #
+    #     print(G)
+    #
+    #     return G
 
     @property
     def num_labels(self):
