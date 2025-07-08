@@ -19,7 +19,7 @@ db = pymysql.connect(
     password="Apple3328823%",
     database="sce",
     charset="utf8mb4",  # Use utf8mb4 for full Unicode support
-    connect_timeout=50
+    connect_timeout=500
 )
 
 def find_related_class(sr_method, cls_name_list, field_name_dict):
@@ -68,10 +68,15 @@ def gen_original_graph(project_name):
 
                 if len(related_classes) > 0:
                     for rcls in related_classes:
-                        target_class = cls_list[cls_name_list.index(rcls)]
-                        class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=program.class_list)
-                        class_level_graph_generator.create_fe_graph(target_class=target_class, target_method=method)
-                        class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="original", source_class_name=sr_class.class_name, target_class_name=target_class.class_name, method_path=method_path, method_name=method.method_name)
+                        try:
+
+                            target_class = cls_list[cls_name_list.index(rcls)]
+                            class_level_graph_generator=ClassLevelGraphGenerator(sr_class=sr_class, class_list=cls_list)
+                            class_level_graph_generator.create_fe_graph(target_class=target_class, target_method=method)
+                            class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="original", source_class_name=sr_class.class_name, target_class_name=target_class.class_name, method_path=method_path, method_name=method.method_name)
+                        except Exception as e:
+                            print(e)
+                            continue
             # class_level_graph_generator.create_graph()
             # class_level_graph_generator.to_database(db=db, project_name=project_name, group="original")
 
@@ -131,17 +136,17 @@ def gen_auto_graph(project_name):
                 if method.method_name == target_method_name:
                     target_method = method
 
-
-            class_level_graph_generator = ClassLevelGraphGenerator(sr_class=source_class, class_list=cls_list)
-            class_level_graph_generator.create_fe_graph(target_class=target_class, target_method=target_method)
-            # class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="auto",
-            #                                            source_class_name=source_class.class_name,
-            #                                            target_class_name=target_class.class_name,
-            #                                            method_name=target_method_name)
-            class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="auto",
-                                                       source_class_name=source_class.class_name,
-                                                       target_class_name=target_class.class_name,
-                                                       method_path=method_path, method_name=target_method_name)
+            if target_method is not None:
+                class_level_graph_generator = ClassLevelGraphGenerator(sr_class=source_class, class_list=cls_list)
+                class_level_graph_generator.create_fe_graph(target_class=target_class, target_method=target_method)
+                # class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="auto",
+                #                                            source_class_name=source_class.class_name,
+                #                                            target_class_name=target_class.class_name,
+                #                                            method_name=target_method_name)
+                class_level_graph_generator.to_fe_database(db=db, project_name=project_name, group="auto",
+                                                           source_class_name=source_class.class_name,
+                                                           target_class_name=target_class.class_name,
+                                                           method_path=method_path, method_name=target_method_name)
 
 
 
@@ -152,11 +157,14 @@ def gen_auto_graph(project_name):
 
 
 if __name__ == '__main__':
-    # gen_auto_graph("jgrapht")
+    # gen_auto_graph("jedit")
     for index, key in enumerate(project_auto_dict):
         print(key)
         print("================================")
         gen_auto_graph(key)
-    # print("openrefine")
+    # print("jgrapht")
     # print("================================")
-    # gen_original_graph("openrefine")
+    # gen_original_graph("jgrapht")
+    # print("junit4")
+    # print("================================")
+    # gen_original_graph("junit4")

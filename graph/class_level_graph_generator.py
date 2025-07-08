@@ -79,6 +79,17 @@ class ClassLevelGraphGenerator:
         self.nodes.append(new_class_node)
         method_nodes = []
 
+        foreign_field_name_list = []
+        foreign_method_name_list = []
+        for cls in self.class_list:
+            if cls.class_name == self.sr_class.class_name:
+                continue
+
+            for field in cls.field_list:
+                foreign_field_name_list.append(field.field_name)
+            for method in cls.method_list:
+                foreign_method_name_list.append(method.method_name)
+
 
         for method in self.sr_class.method_list:
             loc = metrics_calc.get_method_loc(method)
@@ -93,7 +104,7 @@ class ClassLevelGraphGenerator:
             fuc = metrics_calc.get_method_fuc(method)
             lmuc = metrics_calc.get_method_lmuc(method)
             noav = metrics_calc.get_method_noav(method)
-            nfdi = metrics_calc.get_method_nfdi(method, self.class_list)
+            nfdi = metrics_calc.get_method_nfdi(method, foreign_method_name_list=foreign_method_name_list, foreign_field_name_list=foreign_field_name_list)
             nldi = metrics_calc.get_method_nldi(method)
 
             new_method_node = {
@@ -320,10 +331,122 @@ class ClassLevelGraphGenerator:
                     }
                     self.csm_edges.append(new_csm_edge)
 
+    def fetch_class_node(self, sr_class, target_method):
+        metrics_calc = MetricsCalculator(
+            sr_class=sr_class
+        )
+
+        nom = metrics_calc.get_nom()
+        cis = metrics_calc.get_cis()
+        noa = metrics_calc.get_noa()
+        nopa = metrics_calc.get_nopa()
+        atfd = metrics_calc.get_atfd(self.class_list)
+        wmc = metrics_calc.get_wmc()
+        tcc = metrics_calc.get_tcc()
+        lcom = metrics_calc.get_lcom()
+        dcc = metrics_calc.get_dcc(self.class_list)
+        cam = metrics_calc.get_cam()
+        dit = metrics_calc.get_dit(self.class_list)
+        noam = metrics_calc.get_noam()
+        field_name_list = [f.field_name for f in sr_class.field_list]
+        class_loc = metrics_calc.get_class_loc()
+        dist = 0
+        dist = metrics_calc.get_method_dist(target_method)
+
+        new_class_node = {
+            "id": self.__get_id(),
+            "type": "class",
+            "name": sr_class.class_name,
+            "fields": ",".join(field_name_list),
+            "metrics": {
+                "nom": nom,
+                "cis": cis,
+                "noa": noa,
+                "nopa": nopa,
+                "atfd": atfd,
+                "wmc": wmc,
+                "tcc": tcc,
+                "lcom": lcom,
+                "dcc": dcc,
+                "cam": cam,
+                "dit": dit,
+                "noam": noam,
+                "class_loc": class_loc,
+                "dist": dist
+            }
+        }
+        return new_class_node
+        # self.nodes.append(new_class_node)
+
+    def fetch_method_node(self, sr_class, target_method):
+        doc_sim = DocSim()
+        metrics_calc = MetricsCalculator(
+            sr_class=sr_class
+        )
+        foreign_field_name_list = []
+        foreign_method_name_list = []
+        for cls in self.class_list:
+            if cls.class_name == sr_class.class_name:
+                continue
+
+            for field in cls.field_list:
+                foreign_field_name_list.append(field.field_name)
+            for method in cls.method_list:
+                foreign_method_name_list.append(method.method_name)
+
+        loc = metrics_calc.get_method_loc(target_method)
+        cc = metrics_calc.get_method_cc(target_method)
+        pc = metrics_calc.get_method_pc(target_method)
+        lcom1 = metrics_calc.get_method_LCOM1(target_method)
+        lcom2 = metrics_calc.get_method_LCOM2(target_method)
+        lcom3 = metrics_calc.get_method_LCOM3(target_method)
+        lcom4 = metrics_calc.get_method_LCOM4(target_method)
+        tsmc = metrics_calc.get_tsmc(target_method, doc_sim)
+        nbd = metrics_calc.get_method_block_depth(target_method)
+        fuc = metrics_calc.get_method_fuc(target_method)
+        lmuc = metrics_calc.get_method_lmuc(target_method)
+        noav = metrics_calc.get_method_noav(target_method)
+        nfdi = metrics_calc.get_method_nfdi(target_method, foreign_method_name_list=foreign_method_name_list,
+                                            foreign_field_name_list=foreign_field_name_list)
+        nldi = metrics_calc.get_method_nldi(target_method)
+
+        new_method_node = {
+            'id': self.__get_id(),
+            'type': "method",
+            'name': target_method.method_name,
+            "metrics": {
+                "loc": loc,
+                "cc": cc,
+                "pc": pc,
+                "lcom1": lcom1,
+                "lcom2": lcom2,
+                "lcom3": lcom3,
+                "lcom4": lcom4,
+                "tsmc": tsmc,
+                "nbd": nbd,
+                "fuc": fuc,
+                "lmuc": lmuc,
+                "noav": noav,
+                "nfdi": nfdi,
+                "nldi": nldi
+            }
+        }
+        return new_method_node
+
     def create_fe_graph(self, target_class, target_method):
-        self.create_graph(target_method=target_method)
-        self.sr_class = target_class
-        self.create_graph(target_method=target_method)
+        # self.create_graph(target_method=target_method)
+        # self.sr_class = target_class
+        # self.create_graph(target_method=target_method)
+        source_class_node = self.fetch_class_node(sr_class=self.sr_class, target_method=target_method)
+        target_class_node = self.fetch_class_node(sr_class=target_class, target_method=target_method)
+        self.nodes.append(source_class_node)
+        self.nodes.append(target_class_node)
+        target_method_node = self.fetch_method_node(sr_class=target_class, target_method=target_method)
+        self.nodes.append(target_method_node)
+
+
+
+
 
     def to_json(self):
         info = {}

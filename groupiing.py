@@ -229,7 +229,7 @@ def grouping_fe_original():
     group_m_ids = []
 
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM fe_master where `group`='original' limit 5000")
+    cursor.execute("SELECT * FROM fe_master where `group`='original'")
     rows = cursor.fetchall()
 
     for row in rows:
@@ -290,8 +290,8 @@ def grouping_fe_auto():
     cursor.execute("SELECT * FROM fe_master where `group`='auto'")
     for row in cursor.fetchall():
         fe_id = row[0]
-        fe_graph = row[7]
-        target_method_name = row[2]
+        fe_graph = row[8]
+        target_method_name = row[3]
         fe_graph = json.loads(fe_graph)
 
         nfdi = None
@@ -302,11 +302,11 @@ def grouping_fe_auto():
                     nfdi = node["metrics"]["nfdi"]
 
         if nfdi > MAX_NFDI:
-            group_a_ids.append(fe_id)
+            group_a_ids.append(str(fe_id))
         elif nfdi == None:
             continue
         else:
-            group_m_ids.append(fe_id)
+            group_m_ids.append(str(fe_id))
 
     # query = r"update fe_master set `group` = %s, label=%s where id in (%s);"
     # values = ("a", 1, ",".join(group_a_ids))
@@ -320,7 +320,7 @@ def grouping_fe_auto():
 
     if len(group_a_ids) > 0:
         placeholders = ','.join(group_a_ids)
-        query = r"update fe_master set `group` = %s, label=%s where id in ("+placeholders+");"
+        query = r"update fe_master set `group` = %s, label=%s where fe_id in ("+placeholders+");"
         print(query)
         values = ("a", "1")
         cursor.execute(query, values)
@@ -328,15 +328,61 @@ def grouping_fe_auto():
 
     if len(group_m_ids) > 0:
         placeholders = ','.join(group_m_ids)
-        query = r"update fe_master set `group` = %s where id in ("+placeholders+");"
+        query = r"update fe_master set `group` = %s where fe_id in ("+placeholders+");"
         print(query)
         values = ("m")
         cursor.execute(query, values)
         db.commit()
 
+def avg_nfdi():
+    group_a_ids = []
+    group_m_ids = []
+
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM fe_master where `group`='original' ORDER BY RAND() limit 500")
+    rows = cursor.fetchall()
+
+    for row in rows:
+        fe_id = row[0]
+        fe_graph = row[8]
+        target_method_name = row[3]
+        fe_graph = json.loads(fe_graph)
+
+        nfdi = None
+        nodes = fe_graph["nodes"]
+        for node in nodes:
+            if node["type"] == "method":
+                if node["name"] == target_method_name:
+                    nfdi = node["metrics"]["nfdi"]
+
+        if nfdi <= MIN_NFDI:
+            group_a_ids.append(str(fe_id))
+        elif nfdi == None:
+            continue
+        else:
+            group_m_ids.append(str(fe_id))
+
+    print(len(group_a_ids))
+    print(len(group_m_ids))
+    #
+    # # Calculate average
+    # average = sum(numbers) / len(numbers)
+    #
+    # # Find maximum
+    # maximum = max(numbers)
+    #
+    # # Find minimum
+    # minimum = min(numbers)
+    #
+    # print(f"Average: {average}")
+    # print(f"Maximum: {maximum}")
+    # print(f"Minimum: {minimum}")
 
 if __name__ == '__main__':
     # grouping_lm_auto()
     # grouping_lc_original()
     # grouping_lc_auto()
-    grouping_fe_original()
+    # avg_nfdi()
+    # avg_nfdi()
+    # grouping_fe_original()
+    grouping_fe_auto()
