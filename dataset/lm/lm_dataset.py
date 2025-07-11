@@ -32,17 +32,14 @@ class LMDataset(DGLDataset):
                  url=None,
                  split="train",
                  raw_dir=None,
-                 save_dir=None,
                  force_reload=False,
                  verbose=False):
         self.graphs = []
         self.labels = []
         self.split = split
-
         super(LMDataset, self).__init__(name='lm_dataset',
                                         url=url,
                                         raw_dir=raw_dir,
-                                        save_dir=save_dir,
                                         force_reload=force_reload,
                                         verbose=verbose)
 
@@ -58,8 +55,8 @@ class LMDataset(DGLDataset):
         graphs = []
         labels = []
 
-        pos_path = Path(self.split / "_1.txt")
-        neg_path = Path(self.split / "_0.txt")
+        pos_path = Path("dataset/lm/"+self.split + "_1.txt")
+        neg_path = Path("dataset/lm/"+self.split + "_0.txt")
         failed_num = 0
 
         with open(pos_path, "r") as f:
@@ -70,7 +67,7 @@ class LMDataset(DGLDataset):
                 graphs.append(new_graph)
                 labels.append(1)
 
-        with open(pos_path, "r") as f:
+        with open(neg_path, "r") as f:
             lines = f.readlines()
             for line in lines:
                 new_graph = json.loads(line)
@@ -85,7 +82,8 @@ class LMDataset(DGLDataset):
 
     def _get_graph(self, lm_graph):
         nodes = lm_graph["nodes"]
-        nodes_ids = []
+        statement_nodes_ids = []
+        method_nodes_ids = []
         cf_edges = lm_graph["flow_edges"]
         cd_edges = lm_graph["cd_edges"]
         dd_edges = lm_graph["dd_edges"]
@@ -94,9 +92,9 @@ class LMDataset(DGLDataset):
         method_feature = []
         nodes_feature = []
         cf_edge_index = [[],[]]
-        dd_edge_index = []
-        cd_edge_index = []
-        include_edge_index = []
+        dd_edge_index = [[],[]]
+        cd_edge_index = [[],[]]
+        include_edge_index = [[],[]]
 
         for node in nodes:
             if "type" in node.keys():
@@ -108,8 +106,9 @@ class LMDataset(DGLDataset):
                 feature.append(node["metrics"]["lcom2"])
                 feature.append(node["metrics"]["lcom3"])
                 feature.append(node["metrics"]["lcom4"])
+                feature.append(node["metrics"]["noav"])
                 method_feature.append(feature)
-                nodes_ids.append(node["id"])
+                method_nodes_ids.append(node["id"])
             else:
                 feature = []
                 feature.append(node["metrics"]["abcl"])
@@ -119,30 +118,34 @@ class LMDataset(DGLDataset):
                 feature.append(node["metrics"]["nbd"])
                 feature.append(node["metrics"]["vuc"])
                 feature.append(node["metrics"]["wc"])
+                feature.append(node["metrics"]["tsmm"])
                 nodes_feature.append(feature)
-                nodes_ids.append(node["id"])
+                statement_nodes_ids.append(node["id"])
+
+        if len(nodes_feature) <= 0:
+            nodes_feature.append([0]*len(method_feature[0]))
 
         for edge in cf_edges:
-            source = nodes_ids.index(edge["source"])
-            target = nodes_ids.index(edge["target"])
+            source = statement_nodes_ids.index(edge["source"])
+            target = statement_nodes_ids.index(edge["target"])
             cf_edge_index[0].append(source)
             cf_edge_index[1].append(target)
 
         for edge in cd_edges:
-            source = nodes_ids.index(edge["source"])
-            target = nodes_ids.index(edge["target"])
+            source = statement_nodes_ids.index(edge["source"])
+            target = statement_nodes_ids.index(edge["target"])
             cd_edge_index[0].append(source)
             cd_edge_index[1].append(target)
 
         for edge in dd_edges:
-            source = nodes_ids.index(edge["source"])
-            target = nodes_ids.index(edge["target"])
+            source = statement_nodes_ids.index(edge["source"])
+            target = statement_nodes_ids.index(edge["target"])
             dd_edge_index[0].append(source)
             dd_edge_index[1].append(target)
 
         for edge in include_edges:
-            source = nodes_ids.index(edge["source"])
-            target = nodes_ids.index(edge["target"])
+            source = method_nodes_ids.index(edge["source"])
+            target = statement_nodes_ids.index(edge["target"])
             include_edge_index[0].append(source)
             include_edge_index[1].append(target)
 
@@ -152,24 +155,32 @@ class LMDataset(DGLDataset):
             data_dict[('statement', 'cf', 'statement')] = (torch.tensor(cf_edge_index[0]), torch.tensor(cf_edge_index[1]))
         else:
             data_dict[('statement', 'cf', 'statement')] = (torch.tensor([0]), torch.tensor([0]))
+            # pass
+
+
         if len(dd_edge_index) > 0 and len(dd_edge_index[0]) > 0:
             data_dict[('statement', 'dd', 'statement')] = (
             torch.tensor(dd_edge_index[0]), torch.tensor(dd_edge_index[1]))
         else:
             data_dict[('statement', 'dd', 'statement')] = (
                 torch.tensor([0]), torch.tensor([0]))
+            # pass
+
         if len(cd_edge_index) > 0 and len(cd_edge_index[0]) > 0:
             data_dict[('statement', 'cd', 'statement')] = (
             torch.tensor(cd_edge_index[0]), torch.tensor(cd_edge_index[1]))
         else:
             data_dict[('statement', 'cd', 'statement')] = (
                 torch.tensor([0]), torch.tensor([0]))
+            # pass
+
         if len(include_edge_index) > 0 and len(include_edge_index[0]) > 0:
-            data_dict[('method', 'include', 'statement')] = (torch.tensor(include_edges[0]), torch.tensor(include_edges[1]))
+            data_dict[('method', 'include', 'statement')] = (torch.tensor(include_edge_index[0]), torch.tensor(include_edge_index[1]))
         else:
             data_dict[('method', 'include', 'statement')] = (torch.tensor([0]), torch.tensor([0]))
+            # pass
 
-        num_nodes_dict = {'statement': len(nodes_ids)}
+        num_nodes_dict = {'statement': len(nodes_feature)}
         num_nodes_dict['method'] = 1
 
         G = dgl.heterograph(data_dict=data_dict, num_nodes_dict=num_nodes_dict)
@@ -295,7 +306,7 @@ class LMDataset(DGLDataset):
 
     def save(self):
         # save graphs and labels
-        graph_path = os.path.join(self.save_path, self.name + '_dgl_graph.bin')
+        graph_path = os.path.join(self.save_path, self.name + self.split + '_dgl_graph.bin')
         save_graphs(graph_path, self.graphs, {'labels': self.labels})
         # save other information in python dict
         info_path = os.path.join(self.save_path, self.name + '_info.pkl')
@@ -303,14 +314,14 @@ class LMDataset(DGLDataset):
 
     def load(self):
         # load processed data from directory `self.save_path`
-        graph_path = os.path.join(self.save_path, self.name + '_dgl_graph.bin')
+        graph_path = os.path.join(self.save_path, self.name + self.split + '_dgl_graph.bin')
         self.graphs, label_dict = load_graphs(graph_path)
         self.labels = label_dict['labels']
-        info_path = os.path.join(self.save_path, self.name + '_info.pkl')
+        info_path = os.path.join(self.save_path, self.name + self.split + '_info.pkl')
         self.num_classes = load_info(info_path)['num_classes']
 
     def has_cache(self):
         # check whether there are processed data in `self.save_path`
-        graph_path = os.path.join(self.save_path, self.name + '_dgl_graph.bin')
-        info_path = os.path.join(self.save_path, self.name + '_info.pkl')
+        graph_path = os.path.join(self.save_path, self.name + self.split + '_dgl_graph.bin')
+        info_path = os.path.join(self.save_path, self.name + self.split + '_info.pkl')
         return os.path.exists(graph_path) and os.path.exists(info_path)
