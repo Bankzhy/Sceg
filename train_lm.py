@@ -6,7 +6,7 @@ from pathlib import Path
 import pymysql
 from sklearn import metrics
 from torch.utils.data import DataLoader
-from dataset.lm.lm_dataset import LMDataset
+from dataset.lm.lmd_dataset import LMDDataset
 from dgl.dataloading import GraphDataLoader
 from sklearn.metrics import classification_report
 from models.gcn import GCNHeteroClassifier
@@ -93,16 +93,19 @@ def build_eval_dataset():
         f.close()
 
 
-def run():
-   model_output = "output/model/lm-model-gcn.pkl"
+def lm_refact():
+
+
+def lm_detect():
+   model_output = "output/model/lmd-model-gcn.pkl"
    input_dim = 8
    hidden_dim = 64
    set_epoch = 80
 
    build_training_dataset()
    build_eval_dataset()
-   lms_train = LMDataset(split='train', raw_dir="output")
-   lms_test = LMDataset(split='test', raw_dir="output")
+   lms_train = LMDDataset(split='train', raw_dir="output")
+   lms_test = LMDDataset(split='test', raw_dir="output")
    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
    train_data_loader = DataLoader(
@@ -163,4 +166,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    lm_detect()

@@ -39,10 +39,10 @@ class GCNHeteroClassifier(nn.Module):
             # 通过平均读出值来计算单图的表征
             hg = 0
             for ntype in g.ntypes:
-                # hg = hg + dgl.mean_nodes(g, 'h', ntype=ntype)
+                hg = hg + dgl.mean_nodes(g, 'h', ntype=ntype)
 
-                if ntype == "method":
-                    hg = hg + dgl.mean_nodes(g, 'h', ntype=ntype)
-                else:
-                    hg = hg + dgl.max_nodes(g, 'h', ntype=ntype) * h["statement"].size(0)
+                # if ntype == "method":
+                #     hg = hg + dgl.mean_nodes(g, 'h', ntype=ntype)
+                # else:
+                #     hg = hg + dgl.max_nodes(g, 'h', ntype=ntype) * h["statement"].size(0)
             return self.classify(hg)

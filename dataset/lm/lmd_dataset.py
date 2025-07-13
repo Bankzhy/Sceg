@@ -11,7 +11,7 @@ import networkx as nx
 from dgl import save_graphs, load_graphs
 from dgl.data.utils import makedirs, save_info, load_info
 
-class LMDataset(DGLDataset):
+class LMDDataset(DGLDataset):
     """ 用于在DGL中自定义图数据集的模板：
 
         Parameters
@@ -37,11 +37,11 @@ class LMDataset(DGLDataset):
         self.graphs = []
         self.labels = []
         self.split = split
-        super(LMDataset, self).__init__(name='lm_dataset',
-                                        url=url,
-                                        raw_dir=raw_dir,
-                                        force_reload=force_reload,
-                                        verbose=verbose)
+        super(LMDDataset, self).__init__(name='lmd_dataset',
+                                         url=url,
+                                         raw_dir=raw_dir,
+                                         force_reload=force_reload,
+                                         verbose=verbose)
 
     def download(self):
         # 将原始数据下载到本地磁盘
@@ -182,6 +182,7 @@ class LMDataset(DGLDataset):
 
         num_nodes_dict = {'statement': len(nodes_feature)}
         num_nodes_dict['method'] = 1
+        data_dict[('method', 'include', 'method')] = (torch.tensor([0]), torch.tensor([0]))
 
         G = dgl.heterograph(data_dict=data_dict, num_nodes_dict=num_nodes_dict)
 
