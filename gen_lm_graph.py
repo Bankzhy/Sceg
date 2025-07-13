@@ -119,6 +119,52 @@ def gen_auto_graph(project_name):
                                 pdg_generator.to_database(db=db, project_name=project_name+"_auto", group="auto", extract_lines=extract_lines)
 
 
+
+def fetch_nodes(code):
+    ast = KASTParse("", "java")
+    ast.setup()
+    sr_project = ast.do_parse_content(code)
+    node_list = []
+    for program in sr_project.program_list:
+        for sr_class in program.class_list:
+            for sr_method in sr_class.method_list:
+                try:
+                    pdg_generator = PDGGenerator(
+                        sr_class=sr_class,
+                        sr_method=sr_method
+                    )
+                    pdg_generator.class_list = program.class_list
+                    pdg_generator.create_graph()
+                    node_list = pdg_generator.node_list
+                    # pdg_generator.to_database(db=db, project_name=project_name, group="original")
+                except Exception as e:
+                    print("Error:")
+                    print(e)
+    return node_list
+
+
+
+def mark_pos_nodes():
+    group_a_ids = []
+    group_m_ids = []
+
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM lm_master where `group`='original' and split='train'")
+    for row in cursor.fetchall():
+        lm_id = row[0]
+        lm_graph = row[8]
+        print(lm_id)
+        lm_graph = json.loads(lm_graph)
+        code = row[2]
+        extract_lines = row[5]
+
+        nodes = lm_graph["nodes"]
+        for index, node in enumrate(nodes):
+            if index == 0:
+                continue
+
+
+
 if __name__ == '__main__':
     # for key in project_auto_dict.keys():
     #     print(key)
