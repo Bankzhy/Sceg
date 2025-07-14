@@ -1,4 +1,5 @@
 import csv
+import json
 import os.path
 from pathlib import Path
 
@@ -121,9 +122,12 @@ def gen_auto_graph(project_name):
 
 
 def fetch_nodes(code):
+    code_content = "class Test {\n   "
+    code_content += code + "\n}"
+
     ast = KASTParse("", "java")
     ast.setup()
-    sr_project = ast.do_parse_content(code)
+    sr_project = ast.do_parse_content(code_content)
     node_list = []
     for program in sr_project.program_list:
         for sr_class in program.class_list:
@@ -143,31 +147,69 @@ def fetch_nodes(code):
     return node_list
 
 
+def fetch_extract_line_numbers(extract_lines):
+    result = []
+    exl = extract_lines.split(";")
+    for ex in exl:
+        if "-" in ex:
+            el = ex.split("-")
+            new_el = list(range(int(int(el[0])), int(el[1])))
+            result.extend(new_el)
+        else:
+            if ex != "":
+                result.append(int(ex))
+    return result
+
 
 def mark_pos_nodes():
     group_a_ids = []
     group_m_ids = []
 
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM lm_master where `group`='original' and split='train'")
+    cursor.execute("SELECT * FROM lm_master where `label`=1 and split='train'")
     for row in cursor.fetchall():
         lm_id = row[0]
         lm_graph = row[8]
         print(lm_id)
         lm_graph = json.loads(lm_graph)
         code = row[2]
+        new_nodes = fetch_nodes(code)
+
         extract_lines = row[5]
+        extract_line_numbers = fetch_extract_line_numbers(extract_lines)
 
         nodes = lm_graph["nodes"]
-        for index, node in enumrate(nodes):
+        for index, node in enumerate(nodes):
             if index == 0:
                 continue
 
+            node["start_line"] = 0
+            node["end_line"] = 0
 
+            if hasattr(new_nodes[index-1].sr_statement, "start_line"):
+                node["start_line"] = new_nodes[index-1].sr_statement.start_line
+                node["end_line"] = new_nodes[index - 1].sr_statement.end_line
+
+            statement_line_numbers = list(range(node["start_line"], node["end_line"]+1))
+            contains_all = all(elem in extract_line_numbers for elem in statement_line_numbers)
+            if contains_all:
+                node["is_extract"] = 1
+            else:
+                node["is_extract"] = 0
+
+        lm_graph_str = json.dumps(lm_graph)
+        query = (r"update lm_master set graph=%s where lm_id=%s;")
+        values = (lm_graph_str, lm_id)
+        cursor.execute(query, values)
+        db.commit()
+
+        print(nodes)
 
 if __name__ == '__main__':
     # for key in project_auto_dict.keys():
     #     print(key)
     #     gen_auto_graph(key)
     # gen_original_graph("jgrapht")
-    gen_auto_graph("jedit")
+    # gen_auto_graph("jedit")
+
+    mark_pos_nodes()

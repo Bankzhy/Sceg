@@ -88,6 +88,7 @@ class LMRDataset(DGLDataset):
         cd_edges = lm_graph["cd_edges"]
         dd_edges = lm_graph["dd_edges"]
         include_edges = lm_graph["include_edges"]
+        nodes_labels = []
 
         method_feature = []
         nodes_feature = []
@@ -121,6 +122,7 @@ class LMRDataset(DGLDataset):
                 feature.append(node["metrics"]["tsmm"])
                 nodes_feature.append(feature)
                 statement_nodes_ids.append(node["id"])
+                nodes_labels.append(node["is_extract"])
 
         if len(nodes_feature) <= 0:
             nodes_feature.append([0]*len(method_feature[0]))
@@ -190,7 +192,7 @@ class LMRDataset(DGLDataset):
         G.nodes['statement'].data['feat'] = torch.tensor(nodes_feature).to(torch.float32)
 
         # node cls
-        # G.nodes['statement'].data['label'] = torch.tensor(nodes_labels)
+        G.nodes['statement'].data['label'] = torch.tensor(nodes_labels)
 
         print(G)
 

@@ -9,6 +9,8 @@ from torch.utils.data import DataLoader
 from dataset.lm.lmd_dataset import LMDDataset
 from dgl.dataloading import GraphDataLoader
 from sklearn.metrics import classification_report
+
+from dataset.lm.lmr_dataset import LMRDataset
 from models.gcn import GCNHeteroClassifier
 
 dataset_path = Path(r"dataset/lm")
@@ -94,6 +96,14 @@ def build_eval_dataset():
 
 
 def lm_refact():
+    model_output = "output/model/lmr-model-gcn.pkl"
+    input_dim = 8
+    hidden_dim = 64
+    set_epoch = 80
+
+    lms_train = LMRDataset(split='train', raw_dir="output")
+    lms_test = LMRDataset(split='test', raw_dir="output")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def lm_detect():
