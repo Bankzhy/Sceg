@@ -11,7 +11,7 @@ from dgl.dataloading import GraphDataLoader
 from sklearn.metrics import classification_report
 
 from dataset.lm.lmr_dataset import LMRDataset
-from models.gcn import GCNHeteroClassifier
+from models.gcn import GCNHeteroClassifier, RGCN
 
 dataset_path = Path(r"dataset/lm")
 db = pymysql.connect(
@@ -40,6 +40,10 @@ def collate(samples):
     batched_graph = dgl.batch(graphs)
     batched_labels = torch.tensor(labels)
     return batched_graph, batched_labels
+
+def collate_r(samples):
+    graphs, labels = zip(*samples)
+    return graphs, labels
 
 def build_training_dataset():
 
@@ -101,9 +105,94 @@ def lm_refact():
     hidden_dim = 64
     set_epoch = 80
 
+    build_training_dataset()
+    build_eval_dataset()
+
     lms_train = LMRDataset(split='train', raw_dir="output")
     lms_test = LMRDataset(split='test', raw_dir="output")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    train_data_loader = GraphDataLoader(
+        lms_train,
+        batch_size=32,
+        shuffle=True,
+        collate_fn=collate_r,
+        drop_last=False)
+
+    test_data_loader = GraphDataLoader(
+        lms_test,
+        shuffle=True,
+        batch_size=32,
+        drop_last=False)
+
+    g, l = lms_train[0]
+    etypes = g.etypes
+    n_st_classes = 2
+    st_feats = g.nodes['statement'].data['feat']
+    n_hetero_features = len(st_feats[0])
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
+
+    model = RGCN(n_hetero_features, hidden_dim, n_st_classes, etypes)
+    # model = RGraphSage(n_hetero_features, hidden_dim, n_st_classes, etypes)
+    # model = RGAT(n_hetero_features, hidden_dim, n_st_classes, etypes)
+
+
+    model.to(device)
+    optimizer = torch.optim.Adam(model.parameters())
+    loss_func = nn.CrossEntropyLoss()
+    model.train()
+    epoch_losses = []
+
+    for epoch in range(set_epoch):
+        epoch_loss = 0
+        for iter, (batched_graph, labels) in enumerate(train_data_loader):
+            for graph in batched_graph:
+                st_feats = graph.nodes['statement'].data['feat']
+                st_labels = graph.nodes['statement'].data['label']
+                node_features = {'statement': st_feats.to(device)}
+                graph = graph.to(device)
+                st_labels = st_labels.to(device)
+                model.train()
+                prediction = model(graph, node_features)['statement']
+                loss = loss_func(prediction, st_labels)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                epoch_loss += loss.detach().item()
+        epoch_loss /= (iter + 1)
+
+        print('Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
+        epoch_losses.append(epoch_loss)
+
+    # 保存
+    torch.save(model, model_output)
+    # 加载
+    model = torch.load(model_output)
+
+
+    model.eval()
+    y_true = []
+    y_pred = []
+    for graph, labels in test_data_loader:
+        st_feats = graph.nodes['method'].data['feat']
+        st_labels = graph.nodes['method'].data['label']
+        node_features = {'method': st_feats}
+        node_features = {'method': st_feats.to(device)}
+        graph = graph.to(device)
+        st_labels = st_labels.to(device)
+        prediction = model(graph, node_features)['method']
+        y_pred.extend(prediction.argmax(1).tolist())
+        y_true.extend(st_labels.cpu())
+
+    target_names = ["neg", "pos"]
+    report = classification_report(y_true, y_pred, target_names=target_names)
+    print(report)
+    # save_report(report, report_save_path)
+    fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred, pos_label=1)
+    auc = metrics.auc(fpr, tpr)
+    print("AUC:", auc)
 
 
 def lm_detect():
@@ -176,4 +265,5 @@ def lm_detect():
 
 
 if __name__ == '__main__':
-    lm_detect()
+    # lm_detect()
+    lm_refact()

@@ -56,7 +56,7 @@ class LMRDataset(DGLDataset):
         labels = []
 
         pos_path = Path("dataset/lm/"+self.split + "_1.txt")
-        neg_path = Path("dataset/lm/"+self.split + "_0.txt")
+        # neg_path = Path("dataset/lm/"+self.split + "_0.txt")
         failed_num = 0
 
         with open(pos_path, "r") as f:
@@ -67,13 +67,13 @@ class LMRDataset(DGLDataset):
                 graphs.append(new_graph)
                 labels.append(1)
 
-        with open(neg_path, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                new_graph = json.loads(line)
-                new_graph = self._get_graph(new_graph)
-                graphs.append(new_graph)
-                labels.append(0)
+        # with open(neg_path, "r") as f:
+        #     lines = f.readlines()
+        #     for line in lines:
+        #         new_graph = json.loads(line)
+        #         new_graph = self._get_graph(new_graph)
+        #         graphs.append(new_graph)
+        #         labels.append(0)
 
         labels = torch.tensor(labels)
         self.num_classes = 2
@@ -126,6 +126,7 @@ class LMRDataset(DGLDataset):
 
         if len(nodes_feature) <= 0:
             nodes_feature.append([0]*len(method_feature[0]))
+            nodes_labels.append(0)
 
         for edge in cf_edges:
             source = statement_nodes_ids.index(edge["source"])
