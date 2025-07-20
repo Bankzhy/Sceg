@@ -1,19 +1,24 @@
 import os
-import torch.nn as nn
+from pathlib import Path
+
 import dgl
+import pymysql
 import torch
 from pathlib import Path
 import pymysql
 from sklearn import metrics
+from torch import nn
 from torch.utils.data import DataLoader
 from dataset.lm.lmd_dataset import LMDDataset
 from dgl.dataloading import GraphDataLoader
 from sklearn.metrics import classification_report
 
-from dataset.lm.lmr_dataset import LMRDataset
+
+from dataset.lc.lcd_dataset import LCDDataset
+from dataset.lc.lcr_dataset import LCRDataset
 from models.gcn import GCNHeteroClassifier, RGCN
 
-dataset_path = Path(r"dataset/lm")
+dataset_path = Path(r"dataset/lc")
 db = pymysql.connect(
     host="47.113.220.80",
     user="root",
@@ -22,7 +27,6 @@ db = pymysql.connect(
     charset="utf8mb4",  # Use utf8mb4 for full Unicode support
     connect_timeout=50
 )
-
 
 def collate(samples):
     '''
@@ -46,7 +50,6 @@ def collate_r(samples):
     return graphs, labels
 
 def build_training_dataset():
-
     if os.path.exists(dataset_path / "train_1.txt"):
         return
 
@@ -54,24 +57,19 @@ def build_training_dataset():
     with open(dataset_path / "train_1.txt", "w", encoding="utf-8") as f:
         cursor = db.cursor()
         print("loading training 1...")
-        cursor.execute("SELECT * FROM lm_master where `label`=1 and split='train'")
+        cursor.execute("SELECT * FROM lc_master where `label`=1 and split='train'")
         for row in cursor.fetchall():
-            lm_id = row[0]
-            lm_graph = row[8]
-            f.write(lm_graph + "\n")
+            lc_graph = row[7]
+            f.write(lc_graph + "\n")
             pos_count += 1
 
     with open(dataset_path / "train_0.txt", "w", encoding="utf-8") as f:
         print("loading remote...")
-        cursor.execute("SELECT * FROM lm_master where `label`=0 and split='train' limit " + str(pos_count) )
+        cursor.execute("SELECT * FROM lc_master where `label`=0 and split='train' limit " + str(pos_count) )
         for row in cursor.fetchall():
-            lm_id = row[0]
-            lm_graph = row[8]
-            f.write(lm_graph + "\n")
+            lc_graph = row[7]
+            f.write(lc_graph + "\n")
         f.close()
-
-
-
 
 def build_eval_dataset():
 
@@ -82,33 +80,99 @@ def build_eval_dataset():
     with open(dataset_path / "test_1.txt", "w", encoding="utf-8") as f:
         cursor = db.cursor()
         print("loading test 1...")
-        cursor.execute("SELECT * FROM lm_master where `label`=1 and split='eval'")
+        cursor.execute("SELECT * FROM lc_master where `label`=1 and split='eval'")
         for row in cursor.fetchall():
-            lm_id = row[0]
-            lm_graph = row[8]
-            f.write(lm_graph + "\n")
+            lc_graph = row[7]
+            f.write(lc_graph + "\n")
             pos_count += 1
 
     with open(dataset_path / "test_0.txt", "w", encoding="utf-8") as f:
         print("loading remote...")
-        cursor.execute("SELECT * FROM lm_master where `label`=0 and split='eval' limit " + str(pos_count) )
+        cursor.execute("SELECT * FROM lc_master where `label`=0 and split='eval' limit " + str(pos_count) )
         for row in cursor.fetchall():
-            lm_id = row[0]
-            lm_graph = row[8]
-            f.write(lm_graph + "\n")
+            lc_graph = row[7]
+            f.write(lc_graph + "\n")
         f.close()
 
+def lc_detect():
+    model_output = "output/model/lcd-model-gcn.pkl"
+    input_dim = 12
+    hidden_dim = 64
+    set_epoch = 80
 
-def lm_refact():
-    model_output = "output/model/lmr-model-gcn.pkl"
+    build_training_dataset()
+    build_eval_dataset()
+    lcs_train = LCDDataset(split='train', raw_dir="output")
+    lcs_test = LCDDataset(split='test', raw_dir="output")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    train_data_loader = DataLoader(
+        lcs_train,
+        batch_size=32,
+        shuffle=True,
+        collate_fn=collate,
+        drop_last=False)
+
+    test_data_loader = GraphDataLoader(
+        lcs_test,
+        shuffle=True,
+        batch_size=32,
+        drop_last=False)
+
+    g, l = lcs_train[0]
+    etypes = g.etypes
+
+    model = GCNHeteroClassifier(input_dim, hidden_dim, 2, etypes)
+    model.to(device)
+    optimizer = torch.optim.Adam(model.parameters())
+    loss_func = nn.CrossEntropyLoss()
+    model.train()
+    epoch_losses = []
+    for epoch in range(set_epoch):
+        epoch_loss = 0
+        for iter, (batched_graph, labels) in enumerate(train_data_loader):
+            batched_graph = batched_graph.to(device)
+            labels = labels.to(device)
+            prediction = model(batched_graph)
+            loss = loss_func(prediction, labels.squeeze(-1))
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.detach().item()
+        epoch_loss /= (iter + 1)
+
+        print('Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
+        epoch_losses.append(epoch_loss)
+
+    # 保存
+    torch.save(model, model_output)
+    # 加载
+    model = torch.load(model_output)
+
+    model.eval()
+    y_true = []
+    y_pred = []
+    for batched_graph, labels in test_data_loader:
+        pred = model(batched_graph)
+        y_pred.extend(pred.argmax(1).tolist())
+        y_true.extend(labels.tolist())
+    target_names = ["neg", "pos"]
+    print(classification_report(y_true, y_pred, target_names=target_names))
+    fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred, pos_label=1)
+    auc = metrics.auc(fpr, tpr)
+    print("AUC:", auc)
+
+
+def lc_refact():
+    model_output = "output/model/lcr-model-gcn.pkl"
     hidden_dim = 64
     set_epoch = 80
 
     build_training_dataset()
     build_eval_dataset()
 
-    lms_train = LMRDataset(split='train', raw_dir="output")
-    lms_test = LMRDataset(split='test', raw_dir="output")
+    lms_train = LCRDataset(split='train', raw_dir="output")
+    lms_test = LCRDataset(split='test', raw_dir="output")
 
     train_data_loader = GraphDataLoader(
         lms_train,
@@ -126,7 +190,7 @@ def lm_refact():
     g, l = lms_train[0]
     etypes = g.etypes
     n_st_classes = 2
-    st_feats = g.nodes['statement'].data['feat']
+    st_feats = g.nodes['method'].data['feat']
     n_hetero_features = len(st_feats[0])
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -147,13 +211,13 @@ def lm_refact():
         epoch_loss = 0
         for iter, (batched_graph, labels) in enumerate(train_data_loader):
             for graph in batched_graph:
-                st_feats = graph.nodes['statement'].data['feat']
-                st_labels = graph.nodes['statement'].data['label']
-                node_features = {'statement': st_feats.to(device)}
+                st_feats = graph.nodes['method'].data['feat']
+                st_labels = graph.nodes['method'].data['label']
+                node_features = {'method': st_feats.to(device)}
                 graph = graph.to(device)
                 st_labels = st_labels.to(device)
                 model.train()
-                prediction = model(graph, node_features)['statement']
+                prediction = model(graph, node_features)['method']
                 loss = loss_func(prediction, st_labels)
                 optimizer.zero_grad()
                 loss.backward()
@@ -192,76 +256,6 @@ def lm_refact():
     auc = metrics.auc(fpr, tpr)
     print("AUC:", auc)
 
-
-def lm_detect():
-   model_output = "output/model/lmd-model-gcn.pkl"
-   input_dim = 8
-   hidden_dim = 64
-   set_epoch = 80
-
-   build_training_dataset()
-   build_eval_dataset()
-   lms_train = LMDDataset(split='train', raw_dir="output")
-   lms_test = LMDDataset(split='test', raw_dir="output")
-   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-   train_data_loader = DataLoader(
-       lms_train,
-       batch_size=32,
-       shuffle=True,
-       collate_fn=collate,
-       drop_last=False)
-
-   test_data_loader = GraphDataLoader(
-       lms_test,
-       shuffle=True,
-       batch_size=32,
-       drop_last=False)
-
-   g, l = lms_train[0]
-   etypes = g.etypes
-
-   model = GCNHeteroClassifier(input_dim, hidden_dim, 2, etypes)
-   model.to(device)
-   optimizer = torch.optim.Adam(model.parameters())
-   loss_func = nn.CrossEntropyLoss()
-   model.train()
-   epoch_losses = []
-   for epoch in range(set_epoch):
-       epoch_loss = 0
-       for iter, (batched_graph, labels) in enumerate(train_data_loader):
-           batched_graph = batched_graph.to(device)
-           labels = labels.to(device)
-           prediction = model(batched_graph)
-           loss = loss_func(prediction, labels.squeeze(-1))
-           optimizer.zero_grad()
-           loss.backward()
-           optimizer.step()
-           epoch_loss += loss.detach().item()
-       epoch_loss /= (iter + 1)
-
-       print('Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
-       epoch_losses.append(epoch_loss)
-
-   # 保存
-   torch.save(model, model_output)
-   # 加载
-   model = torch.load(model_output)
-
-   model.eval()
-   y_true = []
-   y_pred = []
-   for batched_graph, labels in test_data_loader:
-       pred = model(batched_graph)
-       y_pred.extend(pred.argmax(1).tolist())
-       y_true.extend(labels.tolist())
-   target_names = ["neg", "pos"]
-   print(classification_report(y_true, y_pred, target_names=target_names))
-   fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred, pos_label=1)
-   auc = metrics.auc(fpr, tpr)
-   print("AUC:", auc)
-
-
 if __name__ == '__main__':
-    # lm_detect()
-    lm_refact()
+    # lc_detect()
+    lc_refact()

@@ -133,6 +133,81 @@ def from_csv():
                 continue
 
 
+def mark_pos_nodes():
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM lc_master where `label`=1 and split='eval'")
+    failed = 0
+    for row in cursor.fetchall():
+        try:
+            lc_id = row[0]
+            lc_graph = row[7]
+            lc_graph = json.loads(lc_graph)
+            extract_methods = row[4]
+            extract_methods = extract_methods.split(",")
+            group = row[5]
+
+            if group == "a":
+                project_name = row[1]
+                merged_class_name = row[2]
+                merged_class_name_l = merged_class_name.split("_")
+                target_class_name = merged_class_name_l[2]
+                source_class_name = merged_class_name_l[3]
+                source_class_graph = find_class_graph_from_database(source_class_name, project_name)
+                target_class_graph = find_class_graph_from_database(target_class_name, project_name)
+
+                merge_method_nodes = []
+                for node in source_class_graph["nodes"]:
+                    if node["type"] == "class":
+                        source_class_node = node
+                    else:
+                        merge_method_nodes.append(node)
+                for node in target_class_graph["nodes"]:
+                    if node["type"] == "class":
+                        target_class_node = node
+                    else:
+                        merge_method_nodes.append(node)
+
+                nodes = lc_graph["nodes"]
+                for index, node in enumerate(nodes):
+                    if index == 0:
+                        continue
+
+                    if merge_method_nodes[index-1] in extract_methods:
+                        node["name"] = merge_method_nodes[index-1]["name"]
+                        node["is_extract"] = 1
+                    else:
+                        node["name"] = merge_method_nodes[index - 1]["name"]
+                        node["is_extract"] = 0
+                lc_graph_str = json.dumps(lc_graph)
+                query = (r"update lc_master set graph=%s where lc_id=%s;")
+                values = (lc_graph_str, lc_id)
+                print(query)
+                cursor.execute(query, values)
+
+            else:
+                nodes = lc_graph["nodes"]
+                for index, node in enumerate(nodes):
+                    if index == 0:
+                        continue
+
+                    if node["name"] in extract_methods:
+                        node["is_extract"] = 1
+                    else:
+                        node["is_extract"] = 0
+                lc_graph_str = json.dumps(lc_graph)
+                query = (r"update lc_master set graph=%s where lc_id=%s;")
+                values = (lc_graph_str, lc_id)
+                print(query)
+                cursor.execute(query, values)
+        except Exception as e:
+            print(e)
+            failed += 1
+
+    db.commit()
+    print(failed)
+    print(nodes)
+
+
 if __name__ == '__main__':
     # for index, key in enumerate(project_path_dict.keys()):
     #     print("=================================")
@@ -150,4 +225,5 @@ if __name__ == '__main__':
     #     print("=================================")
     #     gen_auto_graph(key)
     # gen_auto_graph("rxJava")
-    from_csv()
+    # from_csv()
+    mark_pos_nodes()

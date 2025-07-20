@@ -162,9 +162,6 @@ def fetch_extract_line_numbers(extract_lines):
 
 
 def mark_pos_nodes():
-    group_a_ids = []
-    group_m_ids = []
-
     cursor = db.cursor()
     cursor.execute("SELECT * FROM lm_master where `label`=1 and split='train'")
     for row in cursor.fetchall():
