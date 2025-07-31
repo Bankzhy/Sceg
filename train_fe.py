@@ -16,6 +16,7 @@ from models.gcn import RGCN
 from sklearn import metrics
 from sklearn.metrics import classification_report
 
+
 dataset_path = Path(r"dataset/fe")
 db = pymysql.connect(
     host="47.113.220.80",
@@ -202,7 +203,7 @@ def run():
     model.eval()
     y_true = []
     y_pred = []
-    for batched_graph, batched_neg_graph, labels in test_data_loader:
+    for batched_graph, labels in test_data_loader:
         pred = model(batched_graph)
         y_pred.extend(pred.argmax(1).tolist())
         y_true.extend(labels.tolist())
