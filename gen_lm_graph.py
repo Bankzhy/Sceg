@@ -202,11 +202,33 @@ def mark_pos_nodes():
 
         print(nodes)
 
+
+def check_auto_count():
+    count = 0
+    for key in project_auto_dict.keys():
+        auto_file_path = project_auto_dict[key] / "lm"
+        if os.path.exists(auto_file_path) is False:
+            os.mkdir(auto_file_path)
+        auto_index_path = auto_file_path / "index.csv"
+        with open(auto_index_path, mode='r', encoding="utf-8") as file:
+            reader = csv.reader(file)
+            for index, row in enumerate(reader):
+                if index > 0:
+                    print(row)
+                    count += 1
+                    # path = auto_file_path / (row[1] + ".java")
+                    # ast = KASTParse(path, "java")
+                    # ast.setup()
+                    # file = open(path, encoding='utf-8')
+                    # file_content = file.read()
+    print(count)
+
 if __name__ == '__main__':
     # for key in project_auto_dict.keys():
     #     print(key)
     #     gen_auto_graph(key)
     # gen_original_graph("jgrapht")
-    # gen_auto_graph("jedit")
+    gen_auto_graph("jgrapht")
 
-    mark_pos_nodes()
+    # mark_pos_nodes()
+    # check_auto_count()

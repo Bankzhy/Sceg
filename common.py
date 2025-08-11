@@ -20,6 +20,13 @@ project_path_dict = {
     "traccar": Path(r"D:\research\code_corpus\traccar\src\main")
 }
 project_auto_dict = {
+    "jgrapht": Path(r"D:\research\code_corpus\jgrapht_auto"),
+    "libgdx": Path(r"D:\research\code_corpus\libgdx_auto"),
+    "freeplane": Path(r"D:\research\code_corpus\freeplane_auto"),
+    "jsprit": Path(r"D:\research\code_corpus\jsprit_auto"),
+    "oh": Path(r"D:\research\code_corpus\oh_auto"),
+    "openrefine": Path(r"D:\research\code_corpus\openrefine_auto"),
+
     "jedit": Path(r"D:\research\code_corpus\jEdit_auto"),
     "rxJava": Path(r"D:\research\code_corpus\RxJava_auto"),
     "junit4": Path(r"D:\research\code_corpus\junit4_auto"),

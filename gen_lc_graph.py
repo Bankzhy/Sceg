@@ -103,7 +103,7 @@ def gen_auto_graph(project_name):
 
     file_order = ["project", "class_name", "content", "extract_methods", "group", "split", "graph",
                   "path", "label", "reviewer_id"]
-    with open((project_name+"index.csv"), "w", newline='') as csvfile:
+    with open((project_name+"_index.csv"), "w", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, file_order)
         writer.writeheader()
         for row in csv_rows:
@@ -208,6 +208,49 @@ def mark_pos_nodes():
     print(nodes)
 
 
+
+def fix_auto_graph():
+    cursor = db.cursor()
+    cursor.execute("select * from lc_master where graph not like '%fields%' limit 500;")
+    for row in cursor.fetchall():
+        lc_id = row[0]
+        project_name = row[1]
+        lc_class_name = row[2]
+        lc_graph = row[7]
+        lc_graph = json.loads(lc_graph)
+
+        merged_class_name = lc_class_name
+        merged_class_name_l = merged_class_name.split("_")
+        target_class_name = merged_class_name_l[2]
+        source_class_name = merged_class_name_l[3]
+
+        if source_class_name == "Flowable" or source_class_name == "Observable":
+            continue
+        if target_class_name == "Flowable" or target_class_name == "Observable":
+            continue
+
+        source_class_graph = find_class_graph_from_database(source_class_name, project_name)
+        target_class_graph = find_class_graph_from_database(target_class_name, project_name)
+
+        merged_fields = source_class_graph['nodes'][0]["fields"] + "," + target_class_graph["nodes"][0]["fields"]
+        lc_graph["nodes"][0]["fields"] = merged_fields
+        lc_graph_str = json.dumps(lc_graph)
+
+        print(merged_fields)
+        # print(lc_graph_str)
+        print("=====================")
+
+        query = (r"update lc_master set graph=%s where lc_id=%s;")
+        values = (lc_graph_str, lc_id)
+        print(query)
+        cursor.execute(query, values)
+
+    db.commit()
+
+
+
+
+
 if __name__ == '__main__':
     # for index, key in enumerate(project_path_dict.keys()):
     #     print("=================================")
@@ -226,4 +269,5 @@ if __name__ == '__main__':
     #     gen_auto_graph(key)
     # gen_auto_graph("rxJava")
     # from_csv()
-    mark_pos_nodes()
+    # mark_pos_nodes()
+    fix_auto_graph()

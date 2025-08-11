@@ -582,7 +582,7 @@ class PDGGenerator:
             method_path = method_path[0:250]
 
 
-        query = (r"replace into lm_master (project, content, class_name, method_name, extract_lines, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
+        query = (r"insert into lm_master (project, content, class_name, method_name, extract_lines, `group`, split, graph, `path`, label, reviewer_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
         values = (project_name, self.sr_method.text, self.sr_class.class_name, self.sr_method.method_name, extract_lines, group, "pool", graph_json, method_path, 9, 0)
         cursor.execute(query, values)
         db.commit()

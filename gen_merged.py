@@ -739,9 +739,9 @@ def generate_vmu(vmu_do_fix_object_list, writer, field_order, save_path, project
 
 
 if __name__ == '__main__':
-    # gen_merge_cls("traccar")
-    # gen_merge_method("traccar")
+    gen_merge_cls("openrefine")
+    # gen_merge_method("openrefine")
     # gen_move_method("traccar")
 
-    for key in project_auto_dict.keys():
-        gen_move_method(key)
+    # for key in project_auto_dict.keys():
+    #     gen_move_method(key)
