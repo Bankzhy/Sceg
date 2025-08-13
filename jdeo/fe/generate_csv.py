@@ -4,7 +4,7 @@ import os
 
 def generate_csv():
     file_order = ["project", "source_class", "source_method", "target_class", "source_method_identifier"]
-    with open("index.csv", "w") as csvfile:
+    with open("index.csv", "w", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, file_order)
         writer.writeheader()
         for f in os.listdir("."):
@@ -14,6 +14,8 @@ def generate_csv():
                 with open(f, "r") as f:
                     all_lines = f.readlines()
                     for index, line in enumerate(all_lines):
+                        if index == 0:
+                            continue
 
                         ll = line.split("	")
                         source_entity = ll[1]
@@ -25,6 +27,7 @@ def generate_csv():
                         source_method = source_entity_l[1]
                         source_method_name = source_method.split("(")[0]
                         source_method_identifier = source_method.split(":")[0]
+
                         target_class_name = target_entity.split(".")[-1]
                         writer.writerow(dict(zip(file_order, [project_name, source_class_name, source_method_name, target_class_name, source_method_identifier])))
 

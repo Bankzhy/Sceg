@@ -24,7 +24,7 @@ db = pymysql.connect(
     password="Apple3328823%",
     database="sce",
     charset="utf8mb4",  # Use utf8mb4 for full Unicode support
-    connect_timeout=50
+    connect_timeout=5000
 )
 
 def gen_original_graph(project_name):
@@ -211,7 +211,7 @@ def mark_pos_nodes():
 
 def fix_auto_graph():
     cursor = db.cursor()
-    cursor.execute("select * from lc_master where graph not like '%fields%' limit 500;")
+    cursor.execute("select * from lc_master where split='train' and graph not like '%fields%';")
     for row in cursor.fetchall():
         lc_id = row[0]
         project_name = row[1]
