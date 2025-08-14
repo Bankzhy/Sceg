@@ -1,3 +1,4 @@
+import csv
 import json
 
 import pymysql
@@ -56,7 +57,7 @@ def eval_refact():
 
     cursor = db.cursor()
     print("loading test 1...")
-    cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine') and label=1")
+    cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine', 'libgdx') and label=1 and extract_lines != ''")
     for row in cursor.fetchall():
         lm_project = row[1]
         lm_class_name = row[3]
@@ -74,16 +75,15 @@ def eval_refact():
         label_dict[lm_key] = lm_extract_lines
         loc_dict[lm_key] = loc
 
-
-
-    with open('index.csv') as f:
-        lines = f.readlines()
-        for line in lines:
-            ll = line.split(',')
-            project = ll[0]
-            class_name = ll[1]
-            method_name = ll[2]
-            extract_lines = ll[3]
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+            project = row[0]
+            class_name = row[1]
+            method_name = row[2]
+            extract_lines = row[3]
             extract_lines = fetch_extract_line_numbers(extract_lines)
 
 
@@ -106,7 +106,7 @@ def eval_refact():
     eval(TP, TN, FP, FN)
 
 
-def eval_dect():
+def eval_detect():
     TP = 0
     FN = 0
     FP = 0
@@ -115,20 +115,21 @@ def eval_dect():
 
     labels = []
 
-    with open('index.csv') as f:
-        lines = f.readlines()
-        for line in lines:
-            ll = line.split(',')
-            project = ll[0]
-            class_name = ll[1]
-            method_name = ll[2]
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+            project = row[0]
+            class_name = row[1]
+            method_name = row[2]
 
             key = project + "_" + class_name + "_" + method_name
             labels.append(key)
 
     cursor = db.cursor()
     print("loading test 1...")
-    cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine')")
+    cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine', 'libgdx')")
     for row in cursor.fetchall():
         lm_project = row[1]
         lm_class_name = row[3]
@@ -163,6 +164,10 @@ def check_mark():
             project = ll[0]
             if project == 'jsprt':
                 project = 'jsprit'
+
+            if project == 'freeplane' or project == 'jgrapht':
+                continue
+
             class_name = ll[1]
             method_name = ll[2]
             cursor = db.cursor()
@@ -188,4 +193,6 @@ def check_mark():
 
 
 if __name__ == '__main__':
-    check_mark()
+    # check_mark()
+    # eval_refact()
+    eval_detect()
