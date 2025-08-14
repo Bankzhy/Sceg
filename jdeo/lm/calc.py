@@ -187,11 +187,6 @@ def check_mark():
     print("error:",len(error))
     print(error)
 
-
-
-
-
-
 if __name__ == '__main__':
     # check_mark()
     # eval_refact()

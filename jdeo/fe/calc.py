@@ -1,4 +1,5 @@
 import pymysql
+import csv
 
 db = pymysql.connect(
     host="47.113.220.80",
@@ -8,6 +9,26 @@ db = pymysql.connect(
     charset="utf8mb4",  # Use utf8mb4 for full Unicode support
     connect_timeout=50
 )
+def eval(tp, tn, fp, fn):
+    print("tp : ", tp)
+    print("tn : ", tn)
+    print("fp : ", fp)
+    print("fn : ", fn)
+    P = tp * 1.0 / (tp + fp)
+    R = tp * 1.0 / (tp + fn)
+    print("Precision : ", P)
+    print("Recall : ", R)
+    print("F1 : ", 2 * P * R / (P + R))
+    if tp == 0 or tn == 0 or fp == 0 or fn == 0:
+        return 1
+
+    a = tp + fp
+    b = tp + fn
+    c = tn + fp
+    d = tn + fn
+    print("MCC : ", (tp * tn - fp * fn) / ((a * b * c * d) ** 0.5))
+
+    return 2 * P * R / (P + R)
 
 
 def eval_refact():
@@ -19,7 +40,7 @@ def eval_refact():
 
     cursor = db.cursor()
     print("loading test 1...")
-    cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine') and label=1")
+    cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane') and label=1")
     for row in cursor.fetchall():
         fe_project = row[1]
         fe_class_name = row[2]
@@ -29,14 +50,16 @@ def eval_refact():
         fe_key = fe_project + '_' + fe_class_name + '_' + fe_method_name
         target_class_dict[fe_key] = fe_target_class_name
 
-    with open('index.csv') as f:
-        lines = f.readlines()
-        for line in lines:
-            ll = line.split(',')
-            project = ll[0]
-            class_name = ll[1]
-            method_name = ll[2]
-            target_class_name = ll[3]
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+
+            project = row[0]
+            class_name = row[1]
+            method_name = row[2]
+            target_class_name = row[3]
 
 
             key = project + "_" + class_name + "_" + method_name
@@ -59,20 +82,22 @@ def eval_detect():
 
     labels = []
 
-    with open('index.csv') as f:
-        lines = f.readlines()
-        for line in lines:
-            ll = line.split(',')
-            project = ll[0]
-            class_name = ll[1]
-            method_name = ll[2]
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+
+            project = row[0]
+            class_name = row[1]
+            method_name = row[2]
 
             key = project + "_" + class_name + "_" + method_name
             labels.append(key)
 
     cursor = db.cursor()
     print("loading test 1...")
-    cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine')")
+    cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane')")
     for row in cursor.fetchall():
         fe_project = row[1]
         fe_class_name = row[2]
@@ -93,5 +118,39 @@ def eval_detect():
                 TN += 1
     eval(TP, TN, FP, FN)
 
+
+def check_mark():
+    check = []
+    error = []
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+
+            project = row[0]
+            if project == 'libgdx':
+                continue
+
+            class_name = row[1]
+            method_name = row[2]
+            cursor = db.cursor()
+            query = "SELECT * FROM fe_master where `project`=%s and `class_name`=%s and `method_name`=%s;"
+            cursor.execute(query, (project, class_name, method_name))
+            result=cursor.fetchone()
+            if result is None:
+                error.append(row)
+            else:
+                lm_id = result[0]
+                label = result[10]
+
+                if label == 9:
+                    check.append(lm_id)
+    print(len(check))
+    print(check)
+    print("error:",len(error))
+    print(error)
+
+
 if __name__ == '__main__':
-    eval_detect()
+    eval_refact()

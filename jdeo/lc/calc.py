@@ -1,5 +1,5 @@
 import json
-
+import csv
 import pymysql
 
 db = pymysql.connect(
@@ -56,13 +56,14 @@ def eval_refact():
 
     cursor = db.cursor()
     print("loading test 1...")
-    cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine') and label=1")
+    cursor.execute("SELECT * FROM lc_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane', 'libgdx') and label=1")
     for row in cursor.fetchall():
         project = row[1]
         class_name = row[2]
         label = row[9]
         extract_methods = row[4]
         lc_graph = row[7]
+        lc_graph = json.loads(lc_graph)
 
         key = project + "_" + class_name
 
@@ -79,13 +80,14 @@ def eval_refact():
         extract_methods = list(set(extract_methods))
         extract_methods_dict[key] = extract_methods
 
-    with open('index.csv') as f:
-        lines = f.readlines()
-        for line in lines:
-            ll = line.split(',')
-            project = ll[0]
-            class_name = ll[1]
-            predict_extract_methods = ll[2]
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+            project = row[0]
+            class_name = row[1]
+            predict_extract_methods = row[2]
             predict_extract_methods = fetch_extract_methods(predict_extract_methods)
             predict_extract_methods = list(set(predict_extract_methods))
 
@@ -117,19 +119,21 @@ def eval_detect():
 
     labels = []
 
-    with open('index.csv') as f:
-        lines = f.readlines()
-        for line in lines:
-            ll = line.split(',')
-            project = ll[0]
-            class_name = ll[1]
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                print(row)
+                continue
+            project = row[0]
+            class_name = row[1]
 
             key = project + "_" + class_name
             labels.append(key)
 
     cursor = db.cursor()
     print("loading test 1...")
-    cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine')")
+    cursor.execute("SELECT * FROM lc_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane', 'libgdx')")
     for row in cursor.fetchall():
         project = row[1]
         class_name = row[2]
@@ -147,6 +151,36 @@ def eval_detect():
                 TN += 1
     eval(TP, TN, FP, FN)
 
+def check_mark():
+    check = []
+    error = []
+    with open('index.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for index, row in enumerate(reader):
+            if index == 0:
+                continue
+
+            project = row[0]
+            class_name = row[1]
+
+            cursor = db.cursor()
+            query = "SELECT * FROM lc_master where `project`=%s and `class_name`=%s;"
+            cursor.execute(query, (project, class_name))
+            result=cursor.fetchone()
+            if result is None:
+                error.append(row)
+            else:
+                lm_id = result[0]
+                label = result[10]
+
+                if label == 9:
+                    check.append(lm_id)
+    print(len(check))
+    print(check)
+    print("error:",len(error))
+    print(error)
+
+
 
 if __name__ == '__main__':
-    eval_detect()
+    eval_refact()
