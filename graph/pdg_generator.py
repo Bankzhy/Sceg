@@ -28,7 +28,7 @@ class PDGGenerator:
         self.cd_edge_list = []
         self.sp_mark = """#$%&\'()*+,-./:;<=>?@，。?★、…【】《》？“”‘'！[\\]^_`{|}~\s]+"""
         self.w2v_model = None
-        # self.google_news_path = '/Volumes/rog/research/dataset/GoogleNews-vectors-negative300.bin'
+        # self.google_news_path = '/Volumes/rog/research/dataset/model.bin'
         # self.w2v_model = KeyedVectors.load_word2vec_format(self.google_news_path, binary=True)
         # self.kes = KeyWordsExtracotr()
         # self.kes.init_code_corpus()

@@ -2,9 +2,6 @@ import json
 import random
 
 import joblib
-import numpy as np
-import pandas as pd
-
 from sklearn import preprocessing,metrics
 from sklearn.metrics import classification_report
 from sklearn.utils import shuffle

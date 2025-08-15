@@ -22,7 +22,7 @@ MAX_JACCARD_LENGTH = 30
 INC_BATCH_SIZE = 80000
 
 W2V_MODEL_DIR = r'../util/model.bin'
-# W2V_MODEL_DIR = r'F:\\research\dataset\GoogleNews-vectors-negative300.bin'
+# W2V_MODEL_DIR = r'F:\\research\dataset\model.bin'
 # TRAIN_SET_DIR = 'D:/TSE/largeclass/data'
 
 tokenizer = preprocess.get_tokenizer()
