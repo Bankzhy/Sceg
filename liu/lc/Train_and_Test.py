@@ -131,7 +131,7 @@ def train(projectname,models,x_train,y_train):
                         temp_set.append([mn1[i],metrics1[i],1])
 
                 np.random.shuffle(temp_set)
-                
+
                 y=[]
                 mn=[]
                 metrics=[]
@@ -148,8 +148,8 @@ def train(projectname,models,x_train,y_train):
 
                 models[k].fit(x, y,epochs=10,batch_size=5,verbose=0)
                 json_string = models[k].to_json()
-                open(r'model/'+projectname+'-'+(str)(k)+'.json','w').write(json_string)
-                models[k].save_weights(r'model/'+projectname+'-'+(str)(k)+'.h5')
+                open(r'lc-'+(str)(k)+'.json','w').write(json_string)
+                models[k].save_weights(r'lc-'+(str)(k)+'.h5')
         return models
 
 def test(models,x_test,y_test):
@@ -229,10 +229,10 @@ def test(models,x_test,y_test):
 #         f1=test(models,x_test,y_test)
 
 def load_all_models():
-    path = r"model"
+
     models = getModels()
     for i, m in enumerate(models):
-        mpath =  path+'\-' + str(i) + '.h5'
+        mpath =  'lc-' + str(i) + '.h5'
         print(mpath)
         m.load_weights(mpath)
 

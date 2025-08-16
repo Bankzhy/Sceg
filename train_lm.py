@@ -82,7 +82,7 @@ def build_eval_dataset():
     with open(dataset_path / "test_1.txt", "w", encoding="utf-8") as f:
         cursor = db.cursor()
         print("loading test 1...")
-        cursor.execute("SELECT * FROM lm_master where `label`=1 and split='eval'")
+        cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine', 'libgdx') and label=1 and extract_lines != ''")
         for row in cursor.fetchall():
             lm_id = row[0]
             lm_graph = row[8]
@@ -91,7 +91,7 @@ def build_eval_dataset():
 
     with open(dataset_path / "test_0.txt", "w", encoding="utf-8") as f:
         print("loading remote...")
-        cursor.execute("SELECT * FROM lm_master where `label`=0 and split='eval' limit " + str(pos_count) )
+        cursor.execute("SELECT * FROM lm_master where `project` in ('jsprit', 'oh', 'openrefine', 'libgdx') and label=0 limit " + str(pos_count))
         for row in cursor.fetchall():
             lm_id = row[0]
             lm_graph = row[8]
@@ -264,4 +264,5 @@ def lm_detect():
 
 if __name__ == '__main__':
     # lm_detect()
-    lm_refact()
+    # lm_refact()
+    build_eval_dataset()

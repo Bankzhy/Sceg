@@ -52,10 +52,11 @@ def load_data(path, tokenizer, embedding_matrix, label):
     metrics_datas = []
     mn_datas = []
     labels = []
+    error = 0
 
     with open(path, "r") as f:
         lines = f.readlines()
-        for line in lines:
+        for index,line in enumerate(lines):
             new_graph = json.loads(line)
             nodes = new_graph["nodes"]
             feature = []
@@ -78,21 +79,23 @@ def load_data(path, tokenizer, embedding_matrix, label):
             data_mn_list = []
 
             for index, node in enumerate(nodes):
-
-                if index == 0:
-                    fields_str = node["fields"]
-                    if fields_str != "":
-                        fields_l = fields_str.split(",")
-                        for f in fields_l:
-                            field_name_txt = split_token(f)
-                            field_name_txt = " ".join(field_name_txt)
-                            field_name_txt.lower()
-                            data_mn_list.append(field_name_txt)
-                else:
-                    method_name_txt = split_token(node['name'])
-                    method_name_txt = " ".join(method_name_txt)
-                    method_name_txt.lower()
-                    data_mn_list.append(method_name_txt)
+                try:
+                    if index == 0:
+                        fields_str = node["fields"]
+                        if fields_str != "":
+                            fields_l = fields_str.split(",")
+                            for f in fields_l:
+                                field_name_txt = split_token(f)
+                                field_name_txt = " ".join(field_name_txt)
+                                field_name_txt.lower()
+                                data_mn_list.append(field_name_txt)
+                    else:
+                        method_name_txt = split_token(node['name'])
+                        method_name_txt = " ".join(method_name_txt)
+                        method_name_txt.lower()
+                        data_mn_list.append(method_name_txt)
+                except Exception as e:
+                    continue
 
 
             identifiers = []
@@ -126,11 +129,11 @@ def get_data(maxlen,tokenizer,embedding_matrix, split):
     pos_path = r"../../dataset/lc/"+split+"_1.txt"
     neg_path = r"../../dataset/lc/"+split+"_0.txt"
 
-    pos_md, pos_mn, pos_lb = load_data(pos_path, tokenizer, embedding_matrix, 1)
+    pos_mn, pos_md, pos_lb = load_data(pos_path, tokenizer, embedding_matrix, 1)
     metrics_datas.extend(pos_md)
     mn_datas.extend(pos_mn)
     labels.extend(pos_lb)
-    neg_md, neg_mn, neg_lb = load_data(neg_path, tokenizer, embedding_matrix, 0)
+    neg_mn, neg_md, neg_lb = load_data(neg_path, tokenizer, embedding_matrix, 0)
     metrics_datas.extend(neg_md)
     mn_datas.extend(neg_mn)
     labels.extend(neg_lb)

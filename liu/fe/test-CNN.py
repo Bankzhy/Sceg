@@ -65,12 +65,12 @@ def load_data(path, label):
                 if node["type"] == "class":
                     dist.append(node["metrics"]["dist"])
                     class_name_text = split_token(node['name'])
-                    class_name_text = class_name_text.join(" ")
+                    class_name_text = " ".join(class_name_text)
                     class_name_text = class_name_text.lower()
                     text.append(class_name_text)
                 elif node["type"] == "method":
                     method_name_text = split_token(node['name'])
-                    method_name_text = method_name_text.join(" ")
+                    method_name_text = " ".join(method_name_text)
                     method_name_text = method_name_text.lower()
                     text.append(method_name_text)
             distances.append(dist)
@@ -137,13 +137,13 @@ def test():
     test_texts = []
     targetClassNames=[]
 
-    pos_path = Path("dataset/fe/" + "test" + "_1.txt")
+    pos_path = Path("../../dataset/fe/" + "test" + "_1.txt")
     pos_dist, pos_text, pos_label = load_data(pos_path, 1)
     test_distances.extend(pos_dist)
     test_texts.extend(pos_text)
     test_labels.extend(pos_label)
 
-    neg_path = Path("dataset/fe/" + "test" + "_0.txt")
+    neg_path = Path("../../dataset/fe/" + "test" + "_0.txt")
     neg_dist, neg_text, neg_label = load_data(neg_path, 0)
     test_distances.extend(neg_dist)
     test_texts.extend(neg_text)
@@ -182,7 +182,10 @@ def test():
     x_val.append(np.array(x_val_dis))
     y_val = np.array(test_labels)
 
-    preds = model.predict_classes(x_val)
+    # preds = model.predict_classes(x_val)
+    predict_prob = model.predict(x_val)
+    preds = np.argmax(predict_prob, axis=1)
+
     target_names = ["neg", "pos"]
     print(classification_report(y_val, preds, target_names=target_names))
 
@@ -303,3 +306,5 @@ def test():
     # print(precision,recall,f1)
     # print("AUC : ",metrics.roc_auc_score(auc_y.astype(int),auc_p))
     # print("--------------------------------")
+
+test()
