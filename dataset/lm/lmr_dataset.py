@@ -62,10 +62,14 @@ class LMRDataset(DGLDataset):
         with open(pos_path, "r") as f:
             lines = f.readlines()
             for line in lines:
-                new_graph = json.loads(line)
-                new_graph = self._get_graph(new_graph)
-                graphs.append(new_graph)
-                labels.append(1)
+                try:
+                    new_graph = json.loads(line)
+                    new_graph = self._get_graph(new_graph)
+                    graphs.append(new_graph)
+                    labels.append(1)
+                except Exception as e:
+                    failed_num += 1
+                    continue
 
         # with open(neg_path, "r") as f:
         #     lines = f.readlines()
@@ -79,6 +83,10 @@ class LMRDataset(DGLDataset):
         self.num_classes = 2
         print("Failed:", failed_num)
         return graphs, labels
+
+    def get_graph(self, lm_graph):
+        graph = self._get_graph(lm_graph)
+        return graph
 
     def _get_graph(self, lm_graph):
         nodes = lm_graph["nodes"]

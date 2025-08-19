@@ -11,7 +11,9 @@ from dgl.dataloading import GraphDataLoader
 from sklearn.metrics import classification_report
 
 from dataset.lm.lmr_dataset import LMRDataset
+from models.gat import GATHeteroClassifier
 from models.gcn import GCNHeteroClassifier, RGCN
+from models.sage import SageHeteroClassifier
 
 dataset_path = Path(r"dataset/lm")
 db = pymysql.connect(
@@ -102,7 +104,7 @@ def build_eval_dataset():
 def lm_refact():
     model_output = "output/model/lmr-model-gcn.pkl"
     hidden_dim = 64
-    set_epoch = 80
+    set_epoch = 10
 
     build_training_dataset()
     build_eval_dataset()
@@ -174,10 +176,9 @@ def lm_refact():
     y_true = []
     y_pred = []
     for graph, labels in test_data_loader:
-        st_feats = graph.nodes['method'].data['feat']
-        st_labels = graph.nodes['method'].data['label']
-        node_features = {'method': st_feats}
-        node_features = {'method': st_feats.to(device)}
+        st_feats = graph.nodes['statement'].data['feat']
+        st_labels = graph.nodes['statement'].data['label']
+        node_features = {'statement': st_feats.to(device)}
         graph = graph.to(device)
         st_labels = st_labels.to(device)
         prediction = model(graph, node_features)['method']
@@ -194,10 +195,10 @@ def lm_refact():
 
 
 def lm_detect():
-   model_output = "output/model/lmd-model-gcn.pkl"
+   model_output = "output/model/lmd-model-gat.pkl"
    input_dim = 8
-   hidden_dim = 64
-   set_epoch = 80
+   hidden_dim = 32
+   set_epoch = 20
 
    build_training_dataset()
    build_eval_dataset()
@@ -222,6 +223,9 @@ def lm_detect():
    etypes = g.etypes
 
    model = GCNHeteroClassifier(input_dim, hidden_dim, 2, etypes)
+   # model = SageHeteroClassifier(input_dim, hidden_dim, 2, etypes)
+   # model = GATHeteroClassifier(input_dim, hidden_dim, 2, etypes)
+
    model.to(device)
    optimizer = torch.optim.Adam(model.parameters())
    loss_func = nn.CrossEntropyLoss()
@@ -247,6 +251,7 @@ def lm_detect():
    torch.save(model, model_output)
    # 加载
    model = torch.load(model_output)
+   model.to("cpu")
 
    model.eval()
    y_true = []
@@ -262,7 +267,67 @@ def lm_detect():
    print("AUC:", auc)
 
 
+def test_lm_detect():
+    model_output = "output/model/lmd-model-gcn.pkl"
+    lms_test = LMDDataset(split='test', raw_dir="output")
+    test_data_loader = GraphDataLoader(
+        lms_test,
+        shuffle=True,
+        batch_size=32,
+        drop_last=False)
+
+    # 加载
+    model = torch.load(model_output)
+    model.to("cpu")
+    model.eval()
+    y_true = []
+    y_pred = []
+    for batched_graph, labels in test_data_loader:
+        pred = model(batched_graph)
+        y_pred.extend(pred.argmax(1).tolist())
+        y_true.extend(labels.tolist())
+    target_names = ["neg", "pos"]
+    print(classification_report(y_true, y_pred, target_names=target_names))
+    fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred, pos_label=1)
+    auc = metrics.auc(fpr, tpr)
+    print("AUC:", auc)
+
+
+def test_lm_refact():
+    model_output = "output/model/lmr-model-gcn.pkl"
+    lms_test = LMRDataset(split='test', raw_dir="output")
+    test_data_loader = GraphDataLoader(
+        lms_test,
+        shuffle=True,
+        batch_size=32,
+        drop_last=False)
+
+    # 加载
+    model = torch.load(model_output)
+    model.to("cpu")
+
+    model.eval()
+    y_true = []
+    y_pred = []
+    for graph, labels in test_data_loader:
+        st_feats = graph.nodes['statement'].data['feat']
+        st_labels = graph.nodes['statement'].data['label']
+        node_features = {'statement': st_feats}
+        # graph = graph.to(device)
+        # st_labels = st_labels.to(device)
+        prediction = model(graph, node_features)['statement']
+        y_pred.extend(prediction.argmax(1).tolist())
+        y_true.extend(st_labels.cpu())
+
+    target_names = ["neg", "pos"]
+    report = classification_report(y_true, y_pred, target_names=target_names)
+    print(report)
+    # save_report(report, report_save_path)
+    fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pred, pos_label=1)
+    auc = metrics.auc(fpr, tpr)
+    print("AUC:", auc)
+
 if __name__ == '__main__':
+    # test_lm_detect()
     # lm_detect()
-    # lm_refact()
-    build_eval_dataset()
+    test_lm_refact()

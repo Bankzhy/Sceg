@@ -4,8 +4,8 @@ project_path_dict = {
     "jgrapht": Path(r"D:\research\code_corpus\jgrapht\jgrapht-core"),
     "libgdx": Path(r"D:\research\code_corpus\libgdx\gdx"),
     "freeplane": Path(r"D:\research\code_corpus\freeplane\freeplane\src\main"),
-    "jsprit": Path(r"F:\research\dataset\op\jsprit\jsprit-core\src\main"),
-    "oh": Path(r"F:\research\dataset\op\openhospital-core\src\main\java"),
+    "jsprit": Path(r"D:\research\code_corpus\code_corpus\jsprit\jsprit-core\src\main"),
+    "oh": Path(r"D:\research\code_corpus\code_corpus\openhospital-core\src\main\java"),
     "openrefine": Path(r"D:\research\eval_projects\OpenRefine\main\src"),
 
     "jedit": Path(r"D:\research\code_corpus\jEdit\org\jedit"),

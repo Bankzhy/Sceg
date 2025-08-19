@@ -45,6 +45,9 @@ def fetch_extract_methods(extract_methods):
 
 
 def eval_refact():
+
+    ignore = [2970,9713,9753,9787,9798,9802,9835,9841,9850,9855,9856,9858,9985,10009,10435,10504,10542,10769,10770,10771,10772,10785,10786,10787,10788,10800,10917,11219,11264,12141,12277,12283,12305,12306,12515]
+
     TP = 0
     FN = 0
     FP = 0
@@ -58,6 +61,9 @@ def eval_refact():
     print("loading test 1...")
     cursor.execute("SELECT * FROM lc_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane', 'libgdx') and label=1")
     for row in cursor.fetchall():
+        lc_id = row[0]
+        if lc_id in ignore:
+            continue
         project = row[1]
         class_name = row[2]
         label = row[9]

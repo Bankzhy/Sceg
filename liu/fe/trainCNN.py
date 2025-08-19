@@ -267,7 +267,7 @@ def train():  # select optional model
 
         model.compile(loss='binary_crossentropy', optimizer='Adadelta', metrics=['accuracy'])
 
-        model.fit(x_train, y_train, epochs=3, verbose=2)
+        model.fit(x_train, y_train, epochs=20, verbose=2)
 
         json_string = model.to_json()
         open("fe.json",'w').write(json_string)
