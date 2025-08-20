@@ -116,7 +116,7 @@ def check_exist_graph(project, class_name):
 
 def update_fec(fec_graph, info, fe_id):
     cursor = db.cursor()
-    key = info[0] + "_" + info[1]
+    key = info[7]
     fe_graph = json.dumps(fec_graph)
 
     query = (
@@ -216,5 +216,52 @@ def gen():
     #     db.commit()
 
 
+def gen_auto():
+    cursor = db.cursor()
+    query = "select * from fe_master where content!='fec' and label=1 and `group`='a'"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    exist_fe_ids = []
+    # print("graph dict loaded")
+    # print(info_dict)
+    ignore =["Vec3d", "Vec3f"]
+
+    for row in rows:
+        try:
+            fe_id = row[0]
+            print("parsing..", fe_id)
+            fe_project = row[1]
+            fe_class_name = row[2]
+
+            if fe_class_name in ignore:
+                continue
+
+            fe_method_name = row[3]
+            fe_target_class_name = row[5]
+            if fe_class_name.startswith("Vec") or fe_target_class_name.startswith("Vec"):
+                continue
+            fe_group = row[6]
+            fe_split = row[7]
+            fe_graph = row[8]
+            fe_graph = json.loads(fe_graph)
+
+            if fe_graph["nodes"][0]["metrics"]["nom"] > 50:
+                continue
+            if fe_graph["nodes"][1]["metrics"]["nom"] > 50:
+                continue
+
+            fe_label = row[10]
+            fe_path = row[9]
+            info = [fe_project, fe_class_name, fe_method_name, fe_target_class_name, fe_group, fe_split, fe_label, fe_path]
+
+            fec_graph = create_auto_fec_graph(fe_project, fe_class_name, fe_target_class_name, fe_method_name)
+            update_fec(fec_graph, info, fe_id)
+            print("add graph: ", fec_graph)
+        except Exception as e:
+            print(e)
+            continue
+
+
+
 if __name__ == '__main__':
-    gen()
+    gen_auto()
