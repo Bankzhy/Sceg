@@ -106,13 +106,14 @@ def load_graph_dict():
 
 def check_exist_graph(project, class_name):
     cursor = db.cursor()
-    query = "select * from fec_master where project=%s and class_name=%s;"
-    cursor.execute(query, (project, class_name))
+    path = project + "_" + class_name + "_" + "m"
+    query = "select * from fec_master where path=%s and `group`='m';"
+    cursor.execute(query, (path))
     row = cursor.fetchone()
     if row is not None:
-        fe_graph = row[8]
-        fe_graph = json.loads(fe_graph)
-        return fe_graph
+        fec_graph = row[8]
+        fec_graph = json.loads(fec_graph)
+        return fec_graph
 
 def update_fec(fec_graph, info, fe_id):
     cursor = db.cursor()
@@ -216,9 +217,76 @@ def gen():
     #     db.commit()
 
 
+def fetch_lc_graph(project, class_name):
+    cursor = db.cursor()
+    query = "select * from lc_master where project=%s and class_name=%s"
+    cursor.execute(query, (project, class_name))
+    row = cursor.fetchone()
+    if row is not None:
+        lc_graph = row[7]
+        lc_graph = json.loads(lc_graph)
+        return lc_graph
+
+def gen_m():
+    cursor = db.cursor()
+    query = "select * from fe_master where content!='fec' and `group`='m' and label=0 limit 2000"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    for row in rows:
+        fe_id = row[0]
+        print("parsing..", fe_id)
+        fe_project = row[1]
+        fe_class_name = row[2]
+
+        fe_method_name = row[3]
+        fe_target_class_name = row[5]
+        fe_group = row[6]
+        fe_split = row[7]
+        fe_graph = row[8]
+        fe_graph = json.loads(fe_graph)
+        fe_label = row[10]
+        fe_path = fe_project+"_"+fe_class_name+"_"+"m"
+        info = [fe_project, fe_class_name, fe_method_name, fe_target_class_name, fe_group, fe_split, fe_label, fe_path]
+
+        fec_graph = check_exist_graph(fe_project, fe_class_name)
+
+        if fec_graph is None:
+            lc_graph = fetch_lc_graph(fe_project, fe_class_name)
+            if lc_graph is not None:
+                for node in lc_graph["nodes"]:
+                    if node["name"] == fe_method_name:
+                        node["metrics"]["source_dist"] = fe_graph["nodes"][0]["metrics"]["dist"]
+                        node["metrics"]["target_dist"] = fe_graph["nodes"][1]["metrics"]["dist"]
+                        if fe_label == 1:
+                            node["is_extract"] = 1
+                        else:
+                            node["is_extract"] = 0
+                    else:
+                        node["metrics"]["source_dist"] = 0
+                        node["metrics"]["target_dist"] = 0
+                        node["is_extract"] = 0
+                # graph_dict[key] = fec_graph
+                update_fec(lc_graph, info, fe_id)
+                print("add graph: ", lc_graph)
+        else:
+            for node in fec_graph["nodes"]:
+                if node["name"] == fe_method_name:
+                    node["metrics"]["source_dist"] = fe_graph["nodes"][0]["metrics"]["dist"]
+                    node["metrics"]["target_dist"] = fe_graph["nodes"][1]["metrics"]["dist"]
+                    if fe_label == 1:
+                        node["is_extract"] = 1
+                    update_fec(fec_graph, info, fe_id)
+                    print("update graph: ", fec_graph)
+                    break
+
+
+
+
+
 def gen_auto():
     cursor = db.cursor()
-    query = "select * from fe_master where content!='fec' and label=1 and `group`='a'"
+    query = "select * from fe_master where content!='fec' and label=0 and `group`='a' limit 2000"
     cursor.execute(query)
     rows = cursor.fetchall()
     exist_fe_ids = []
@@ -264,4 +332,5 @@ def gen_auto():
 
 
 if __name__ == '__main__':
-    gen_auto()
+    # gen_auto()
+    gen_m()
