@@ -7,7 +7,7 @@ from dgl.data import DGLDataset
 from dgl import save_graphs, load_graphs
 from dgl.data.utils import save_info, load_info
 
-class FEDataset(DGLDataset):
+class FEDatasetOld(DGLDataset):
     def __init__(self,
                  url=None,
                  split="train",
@@ -18,7 +18,7 @@ class FEDataset(DGLDataset):
         self.neg_graphs = []
         self.labels = []
         self.split = split
-        super(FEDataset, self).__init__(name='fe_dataset',
+        super(FEDatasetOld, self).__init__(name='fe_dataset',
                                          url=url,
                                          raw_dir=raw_dir,
                                          force_reload=force_reload,

@@ -10,10 +10,10 @@ class GATRGCN(nn.Module):
 
         self.conv1 = dglnn.HeteroGraphConv({
             rel: dglnn.GATConv(in_feats, hid_feats, num_heads=2)
-            for rel in rel_names}, aggregate='mean')
+            for rel in rel_names}, aggregate='sum')
         self.conv2 = dglnn.HeteroGraphConv({
             rel: dglnn.GATConv(hid_feats*2, out_feats, 1)
-            for rel in rel_names}, aggregate='mean')
+            for rel in rel_names}, aggregate='sum')
 
     def forward(self, graph, inputs):
         # inputs是节点的特征

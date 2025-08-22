@@ -3,7 +3,7 @@ import os
 import torch
 from pathlib import Path
 import pymysql
-dataset_path = Path(r"lc")
+dataset_path = Path(r"fe")
 db = pymysql.connect(
     host="47.113.220.80",
     user="root",
@@ -135,7 +135,7 @@ def build_fe_training_dataset():
     with open(dataset_path / "train_1.txt", "w", encoding="utf-8") as f:
         cursor = db.cursor()
         print("loading training 1...")
-        cursor.execute("SELECT * FROM fe_master where `label`=1 and split='train'")
+        cursor.execute("SELECT * FROM fec_master where `label`=1 and split='train'")
         for row in cursor.fetchall():
             lm_id = row[0]
             lm_graph = row[8]
@@ -144,22 +144,22 @@ def build_fe_training_dataset():
 
     with open(dataset_path / "train_0.txt", "w", encoding="utf-8") as f:
         print("loading remote...")
-        cursor.execute("SELECT * FROM fe_master where `label`=0 and split='train' and `group` = 'm' limit " + str(pos_count) )
+        cursor.execute("SELECT * FROM fec_master where `label`=0 and split='train'")
         for row in cursor.fetchall():
             lm_id = row[0]
             lm_graph = row[8]
             f.write(lm_graph + "\n")
 
-        auto_num = pos_count - neg_count
-
-        if auto_num > 0:
-            cursor.execute(
-                "SELECT * FROM fe_master where `label`=0  and `group`='a' and split='train' limit " + str(auto_num))
-            for row in cursor.fetchall():
-                lm_id = row[0]
-                lm_graph = row[8]
-                f.write(lm_graph + "\n")
-                neg_count += 1
+        # auto_num = pos_count - neg_count
+        #
+        # if auto_num > 0:
+        #     cursor.execute(
+        #         "SELECT * FROM fec_master where `label`=0  and `group`='a' and split='train' limit " + str(auto_num))
+        #     for row in cursor.fetchall():
+        #         lm_id = row[0]
+        #         lm_graph = row[8]
+        #         f.write(lm_graph + "\n")
+        #         neg_count += 1
         f.close()
 
 def build_fe_eval_dataset():
@@ -171,7 +171,7 @@ def build_fe_eval_dataset():
     with open(dataset_path / "test_1.txt", "w", encoding="utf-8") as f:
         cursor = db.cursor()
         print("loading test 1...")
-        cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane') and label=1")
+        cursor.execute("SELECT * FROM fec_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane') and label=1")
         for row in cursor.fetchall():
             lm_id = row[0]
             lm_graph = row[8]
@@ -180,6 +180,82 @@ def build_fe_eval_dataset():
 
     with open(dataset_path / "test_0.txt", "w", encoding="utf-8") as f:
         print("loading remote...")
+        cursor.execute("SELECT * FROM fec_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane') and label=0" )
+        for row in cursor.fetchall():
+            lm_id = row[0]
+            lm_graph = row[8]
+            f.write(lm_graph + "\n")
+        f.close()
+
+def build_all_fe_eval():
+    with open(dataset_path / "fe_all.txt", "w", encoding="utf-8") as f:
+        cursor = db.cursor()
+        print("loading test 1...")
+        cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane')")
+        for row in cursor.fetchall():
+            fe_class_name = row[2]
+            fe_method_name = row[3]
+            fe_key = fe_class_name+","+fe_method_name
+            f.write(fe_key + "\n")
+
+
+def build_liu_fe_training_dataset():
+
+    if os.path.exists(dataset_path / 'liu' / "train_1.txt"):
+        return
+
+    pos_count = 0
+    neg_count = 0
+    with open(dataset_path / "train_1.txt", "w", encoding="utf-8") as f:
+        cursor = db.cursor()
+        print("loading training 1...")
+        cursor.execute("SELECT * FROM fe_master where `label`=1 and split='train'")
+        for row in cursor.fetchall():
+            lm_id = row[0]
+            lm_graph = row[8]
+            f.write(lm_graph + "\n")
+            pos_count += 1
+
+    with open(dataset_path / "train_0.txt", "w", encoding="utf-8") as f:
+        print("loading remote...")
+        cursor.execute("SELECT * FROM fe_master where `label`=0 and split='train' ORDER BY RAND()")
+        for row in cursor.fetchall():
+            lm_id = row[0]
+            lm_graph = row[8]
+            f.write(lm_graph + "\n")
+            neg_count+=1
+
+        # auto_num = pos_count - neg_count
+        #
+        # if auto_num > 0:
+        #     cursor.execute(
+        #         "SELECT * FROM fe_master where `label`=0  and `group`='a' and split='train' limit " + str(auto_num))
+        #     for row in cursor.fetchall():
+        #         lm_id = row[0]
+        #         lm_graph = row[8]
+        #         f.write(lm_graph + "\n")
+        #         neg_count += 1
+        f.close()
+
+
+def build_liu_fe_eval_dataset():
+
+    if os.path.exists(dataset_path / 'liu' / "test_1.txt"):
+        return
+
+    pos_count = 0
+    with open(dataset_path / 'liu' / "test_1.txt", "w", encoding="utf-8") as f:
+        cursor = db.cursor()
+        print("loading test 1...")
+        cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane') and label=1")
+        for row in cursor.fetchall():
+            lm_id = row[0]
+            lm_graph = row[8]
+            f.write(lm_graph + "\n")
+            pos_count += 1
+
+    with open(dataset_path / 'liu' / "test_0.txt", "w", encoding="utf-8") as f:
+        print("loading remote...")
         cursor.execute("SELECT * FROM fe_master where `project` in ('jsprit', 'oh', 'openrefine', 'jgrapht', 'freeplane') and label=0" )
         for row in cursor.fetchall():
             lm_id = row[0]
@@ -187,12 +263,13 @@ def build_fe_eval_dataset():
             f.write(lm_graph + "\n")
         f.close()
 
-
-
 if __name__ == '__main__':
     # build_lm_eval_dataset()
     # build_lm_training_dataset()
-    build_lc_eval_dataset()
+    # build_lc_eval_dataset()
     # build_lc_training_dataset()
     # build_fe_eval_dataset()
-    # build_fe_training_dataset()
+    build_fe_training_dataset()
+    # build_liu_fe_eval_dataset()
+    # build_all_fe_eval()
+    # build_liu_fe_training_dataset()

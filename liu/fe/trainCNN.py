@@ -24,7 +24,7 @@ from keras.models import model_from_json
 from gensim.models import word2vec
 
 MAX_SEQUENCE_LENGTH = 15
-MODEL_NUMBER = 1
+MODEL_NUMBER = 5
 
 def nfromm(m, n, unique=True):
     """
@@ -184,13 +184,13 @@ def train():  # select optional model
     #     for line in file_to_read.readlines():
     #         texts.append(line)
 
-    pos_path = Path("../../dataset/fe/" + "train" + "_1.txt")
+    pos_path = Path("../../dataset/fe/liu/" + "train" + "_1.txt")
     pos_dist, pos_text, pos_label = load_data(pos_path, 1)
     distances.extend(pos_dist)
     texts.extend(pos_text)
     labels.extend(pos_label)
 
-    neg_path = Path("../../dataset/fe/" + "train" + "_0.txt")
+    neg_path = Path("../../dataset/fe/liu/" + "train" + "_0.txt")
     neg_dist, neg_text, neg_label = load_data(neg_path, 0)
     distances.extend(neg_dist)
     texts.extend(neg_text)
@@ -267,11 +267,11 @@ def train():  # select optional model
 
         model.compile(loss='binary_crossentropy', optimizer='Adadelta', metrics=['accuracy'])
 
-        model.fit(x_train, y_train, epochs=20, verbose=2)
+        model.fit(x_train, y_train, epochs=25, verbose=2)
 
         json_string = model.to_json()
-        open("fe.json",'w').write(json_string)
-        model.save_weights('fe.h5')
+        open("fe"+str(index)+".json",'w').write(json_string)
+        model.save_weights('fe'+str(index)+'.h5')
         # print('########################', time.time() - ss)
 
         # save model

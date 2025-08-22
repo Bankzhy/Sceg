@@ -229,7 +229,7 @@ def fetch_lc_graph(project, class_name):
 
 def gen_m():
     cursor = db.cursor()
-    query = "select * from fe_master where content!='fec' and `group`='m' and label=0 limit 2000"
+    query = "select * from fe_master where content!='fec' and split='eval' and label!=9;"
     cursor.execute(query)
     rows = cursor.fetchall()
 
@@ -330,7 +330,54 @@ def gen_auto():
             continue
 
 
+def fetch_fe_graph(project, class_name, method_name, target_class_name):
+    cursor = db.cursor()
+    query = """select * from fe_master where project=%s and class_name=%s and method_name=%s and target_class_name=%s;"""
+    cursor.execute(query, (project, class_name, method_name, target_class_name))
+    row = cursor.fetchone()
+    fe_graph = row[8]
+    if fe_graph is not None:
+        fe_graph = json.loads(fe_graph)
+        return fe_graph
+
+def fix_auto():
+    cursor = db.cursor()
+    query = """select * from fec_master where label = 1 and `group`='a' and graph not like '%"is_extract": 1%';"""
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    for row in rows:
+        fec_id = row[0]
+        project=row[1]
+        class_name = row[2]
+        method_name = row[3]
+        target_class_name = row[5]
+        fec_graph = row[8]
+        fec_graph = json.loads(fec_graph)
+
+        fe_graph = fetch_fe_graph(project, class_name, method_name, target_class_name)
+        if fe_graph is not None:
+            for node in fec_graph["nodes"]:
+                if node["name"] == method_name:
+                    node["metrics"]["source_dist"] = fe_graph["nodes"][0]["metrics"]["dist"]
+                    node["metrics"]["target_dist"] = fe_graph["nodes"][1]["metrics"]["dist"]
+                    node["is_extract"] = 1
+                else:
+                    node["metrics"]["source_dist"] = 0
+                    node["metrics"]["target_dist"] = 0
+                    node["is_extract"] = 0
+
+        fec_graph = json.dumps(fec_graph)
+        query = (r"update fec_master set graph=%s where fec_id=%s")
+        print("update:", fec_graph)
+        cursor.execute(query, (fec_graph, fec_id))
+
+        db.commit()
+
+
+
 
 if __name__ == '__main__':
     # gen_auto()
+    # fix_auto()
     gen_m()

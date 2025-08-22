@@ -11,9 +11,9 @@ from dgl.dataloading import GraphDataLoader
 from sklearn.metrics import classification_report
 
 from dataset.lm.lmr_dataset import LMRDataset
-from models.gat import GATHeteroClassifier
+from models.gat import GATHeteroClassifier, GATRGCN
 from models.gcn import GCNHeteroClassifier, RGCN
-from models.sage import SageHeteroClassifier
+from models.sage import SageHeteroClassifier, SageRGCN
 
 dataset_path = Path(r"dataset/lm")
 db = pymysql.connect(
@@ -102,9 +102,9 @@ def build_eval_dataset():
 
 
 def lm_refact():
-    model_output = "output/model/lmr-model-gcn.pkl"
+    model_output = "output/model/lmr-model-gat.pkl"
     hidden_dim = 64
-    set_epoch = 10
+    set_epoch = 20
 
     build_training_dataset()
     build_eval_dataset()
@@ -134,9 +134,9 @@ def lm_refact():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    model = RGCN(n_hetero_features, hidden_dim, n_st_classes, etypes)
-    # model = RGraphSage(n_hetero_features, hidden_dim, n_st_classes, etypes)
-    # model = RGAT(n_hetero_features, hidden_dim, n_st_classes, etypes)
+    # model = RGCN(n_hetero_features, hidden_dim, n_st_classes, etypes)
+    # model = SageRGCN(n_hetero_features, hidden_dim, n_st_classes, etypes)
+    model = GATRGCN(n_hetero_features, hidden_dim, n_st_classes, etypes)
 
 
     model.to(device)
@@ -330,4 +330,5 @@ def test_lm_refact():
 if __name__ == '__main__':
     # test_lm_detect()
     # lm_detect()
-    test_lm_refact()
+    # test_lm_refact()
+    lm_refact()
